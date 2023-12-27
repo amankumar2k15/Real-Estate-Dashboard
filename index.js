@@ -2,12 +2,13 @@ const express = require("express");
 const cors = require("cors")
 const bodyParser = require("body-parser")
 const mongoose = require("mongoose");
-const UserModelDashboard = require('./model/userModelDashboard');
 require("dotenv").config()
+const jwt = require('jsonwebtoken')
+
 // ------------------------CONTINUE WITH GOOGLE start------------------------
 const passport = require("passport");
-const session = require("express-session")
-require("./helper/auth")
+const session = require("express-session");
+const { success } = require("./helper/baseResponse");
 
 //middleware
 function isLoggedIn(req, res, next) {
@@ -17,7 +18,7 @@ function isLoggedIn(req, res, next) {
 
 // Initialize Express app
 const app = express();
-
+require("./helper/auth")
 // Configure Middleware
 app.use(cors())
 app.use(bodyParser.json({ extended: true }));
@@ -29,13 +30,15 @@ app.use(session({ secret: "cats" }))
 app.use(passport.initialize())
 app.use(passport.session())
 
+app.use('/api/v1/', require('./routes'))
+
 
 //Routes
 app.get("/", (req, res) => {
     res.send('<a href="auth/google">Authenticate with GOOGLE</a>')
 })
 
-app.get("/auth/google",
+app.get("/register",
     passport.authenticate("google", { scope: ['email', 'profile'] })
 );
 
@@ -43,9 +46,19 @@ app.get("/google/callback",
     passport.authenticate("google", { successRedirect: '/protected' })
 )
 
-app.get("/protected", isLoggedIn, (req, res) => {
-    console.log("req accepted", req.user)
-    res.send("Hello I'm Protected")
+app.get("/protected", isLoggedIn, async (req, res) => {
+    let payload = {
+        username: req.user.username,
+        role: req.user.role,
+        id: req.user._id
+    }
+    const options = {
+        expiresIn: '1d', // Token will expire in one day
+    };
+    const jwt_token = await jwt.sign(payload, process.env.JWT_KEY, options);
+    console.log("req accepted-----------------------------------------", req.user)
+    // res.send(jwt_token)
+    res.status(200).json(success("Logged in ", { text: `${req.user.username}, logged in ` , token: jwt_token }, 200));
 })
 
 // ------------------------CONTINUE WITH GOOGLE ends------------------------

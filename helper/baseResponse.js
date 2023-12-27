@@ -1,4 +1,4 @@
-exports.success = (message, results, statusCode) => {
+const  success = (message, results, statusCode)=> {
     return {
         message,
         error: false,
@@ -6,20 +6,26 @@ exports.success = (message, results, statusCode) => {
         count: results?.length,
         results
     }
-};
+}
 
-exports.error = (message, statusCode) => {
+const  error = (message, statusCode) => {
     return {
         message,
         code: statusCode,
         error: true
     }
-};
+}
 
-exports.validateRes = (errors) => {
+const  validateRes=(errors) => {
     return {
         message: errors,
         errors: true,
         code: 422
     }
+}
+
+module.exports =  {
+    success ,
+    error , 
+    validateRes
 }

@@ -2,12 +2,15 @@ const mongoose = require("mongoose")
 
 const userSchema = mongoose.Schema({
     username: { type: String, default: null },
+    googleId : { type: String, default: null },
     email: { type: String, default: null },
     phone: { type: Number, default: null },
     password: { type: String, default: null },
     address: { type: String, default: null },
     location: { type: String, default: null },
     role: {
+        type : String,
+        default : null,
         enum: ["super-admin", "admin", "user"]
     },
     isApproved: {
@@ -22,6 +25,8 @@ const userSchema = mongoose.Schema({
     pan: { type: String, default: null },
     blankCheque: { type: String, default: null },
 })
+
+userSchema.index({ username: 'text' });
 
 const UserModelDashboard = mongoose.model("UserModelDashboard", userSchema)
 
