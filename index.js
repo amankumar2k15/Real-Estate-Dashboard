@@ -53,10 +53,23 @@ app.get("/register",
 );
 
 app.get("/google/callback",
-    passport.authenticate("google", { successRedirect: 'http://localhost:5173/dashboard/home' , failureRedirect : "http://localhost:5173/auth/sign-in" })
+    passport.authenticate("google", { successRedirect: 'http://localhost:5173/dashboard/home' , failureRedirect : "http://localhost:5173/auth/sign-in" },async (req,res)=>{
+        let payload = {
+            username: req.user.username,
+            role: req.user.role,
+            id: req.user._id
+        }
+        const options = {
+            expiresIn: '1d', // Token will expire in one day
+        };
+        const jwt_token = await jwt.sign(payload, process.env.JWT_KEY, options);
+        console.log("req accepted-----------------------------------------", req.user)
+        // res.send(jwt_token)
+        res.status(200).json(success("Logged in ", {text: `${req.user.username}, logged in `, token: jwt_token }, 200));
+    })
 )
 
-app.get("login/success", isLoggedIn, async (req, res) => {
+app.get("/login/success", async (req, res) => {
     let payload = {
         username: req.user.username,
         role: req.user.role,
