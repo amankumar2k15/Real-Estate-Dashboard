@@ -22,14 +22,15 @@ require("./helper/auth")
 // Configure Middleware
 app.use(cors({
     origin: "http://localhost:5173",
-    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+    methods : "GET,POST,PUT,DELETE",
+    credentials : true,
 }));
-app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
-    res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    next();
-})
+// app.use((req, res, next) => {
+//     res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+//     res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT");
+//     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+//     next();
+// })
 app.use(bodyParser.json({ extended: true }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json())
@@ -52,10 +53,10 @@ app.get("/register",
 );
 
 app.get("/google/callback",
-    passport.authenticate("google", { successRedirect: 'http://localhost:5173/auth/sign-up' })
+    passport.authenticate("google", { successRedirect: 'http://localhost:5173/dashboard/home' , failureRedirect : "http://localhost:5173/auth/sign-in" })
 )
 
-app.get("/protected", isLoggedIn, async (req, res) => {
+app.get("login/success", isLoggedIn, async (req, res) => {
     let payload = {
         username: req.user.username,
         role: req.user.role,
@@ -67,7 +68,7 @@ app.get("/protected", isLoggedIn, async (req, res) => {
     const jwt_token = await jwt.sign(payload, process.env.JWT_KEY, options);
     console.log("req accepted-----------------------------------------", req.user)
     // res.send(jwt_token)
-    res.status(200).json(success("Logged in ", { text: `${req.user.username}, logged in `, token: jwt_token }, 200));
+    res.status(200).json(success("Logged in ", {text: `${req.user.username}, logged in `, token: jwt_token }, 200));
 })
 
 // ------------------------CONTINUE WITH GOOGLE ends------------------------
