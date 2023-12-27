@@ -12,22 +12,6 @@ passport.use(new GoogleStrategy({
   callbackURL: "http://localhost:4400/google/callback",
   passReqToCallback: true
 },
-  //     function (request, accessToken, refreshToken, profile, done) {
-  //         return done(null, profile);
-  //     }
-  // ));
-
-
-  // passport.serializeUser(function (user, done) {
-  //     done(null, user);
-  // });
-
-  // passport.deserializeUser(function (user, done) {
-  //     done(null, user);
-  // });
-
-
-
 
   async (request, accessToken, refreshToken, profile, done) => {
     //get the user data from google 
@@ -36,7 +20,7 @@ passport.use(new GoogleStrategy({
       username: profile.displayName,
       profile: profile.photos[0].value,
       email: profile.emails[0].value,
-      role : profile.emails[0].value === "shashanksharma1235999@gmail.com" ?  "super-admin" : null
+      role: profile.emails[0].value === "shashanksharma1235999@gmail.com" ? "super-admin" : null
     }
 
     let user = await UserModelDashboard.findOne({ googleId: profile.id })
@@ -60,7 +44,7 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser(async (id, done) => {
   try {
     const user = await UserModelDashboard.findById(id).exec();
-    done(null, user);   
+    done(null, user);
   } catch (error) {
     done(error, null);
   }
