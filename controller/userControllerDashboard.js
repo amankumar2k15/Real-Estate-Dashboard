@@ -19,7 +19,7 @@ const register = async (req, res) => {
 }
 
 
-const userKYCRegistration = async (req,res)=>{
+const userKYCRegistration = async (req, res) => {
     try {
         /*
         Validation 
