@@ -1,9 +1,9 @@
 const mongoose = require("mongoose")
 
 const sellerSchema = mongoose.Schema({
-    companyName:{type: String, default: null},
+    companyName: { type: String, default: null },
     fullName: { type: String, default: null },
-    userId:{ type: String, default: null },
+    userId: { type: String, default: null },
     email: { type: String, default: null },
     phone: { type: Number, default: null },
     address: { type: String, default: null },
@@ -19,7 +19,6 @@ const sellerSchema = mongoose.Schema({
     state: { type: String, default: null },
     city: { type: String, default: null },
     pincode: { type: String, default: null },
-    profile: { type: String, default: null },
     adhaar: { type: String, default: null },
     companyPan: { type: String, default: null },
     blankCheque: { type: String, default: null },

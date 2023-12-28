@@ -14,13 +14,13 @@ passport.use(new GoogleStrategy({
 
   async (request, accessToken, refreshToken, profile, done) => {
     //get the user data from google 
- 
+
     const newUser = {
       googleId: profile.id,
       username: profile.displayName,
       profile: profile.photos[0].value,
       email: profile.emails[0].value,
-      role: profile.emails[0].value === "shashanksharma1235999@gmail.com" ? "super-admin" : null
+      role: (profile.emails[0].value === "shashanksharma1235999@gmail.com" || profile.emails[0].value === "aman.kumar2k15@gmail.com") ? "super-admin" : null
     }
 
     let user = await UserModelDashboard.findOne({ googleId: profile.id })
@@ -37,14 +37,14 @@ passport.use(new GoogleStrategy({
 
 // Serialize user to store in the session
 passport.serializeUser((user, done) => {
-  console.log("reaching here user" , user);
+  console.log("reaching here user", user);
   done(null, user);
 });
 
 // Deserialize user from the session
 passport.deserializeUser(async (id, done) => {
   try {
-  console.log("reaching here id  " , id);
+    console.log("reaching here id  ", id);
 
     const user = await UserModelDashboard.findById(id).exec();
     done(null, user);

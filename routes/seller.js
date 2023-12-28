@@ -2,12 +2,20 @@ const express = require('express');
 const bodyParser = require("body-parser")
 const router = express.Router()
 
-const { sellerRegistration} = require("../controller/sellorController");
+const { sellerRegistration } = require("../controller/sellorController");
 const checkSuperAdmin = require('../middleware/superAdmin');
 const authenticate = require('../middleware/userRoleAuth');
+const { validate } = require("../middleware/validate")
+const { sellerRegister } = require("../validator/seller")
+const upload = require('../middleware/multer');
 
 
-router.post("/create-seller",authenticate ,checkSuperAdmin , sellerRegistration)
+router.post("/create-seller", authenticate, checkSuperAdmin, upload.fields([
+    { name: 'adhaar', maxCount: 1 },
+    { name: 'companyPan', maxCount: 1 },
+    { name: 'blankCheque', maxCount: 1 },
+    { name: 'certificate_of_incorporate', maxCount: 1 },
+]), validate(sellerRegister), sellerRegistration)
 /*
 Super admin routes ===
 list users 
