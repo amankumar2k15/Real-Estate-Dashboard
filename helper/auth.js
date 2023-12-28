@@ -1,7 +1,6 @@
 const passport = require('passport');
 const UserModelDashboard = require('../model/userModelDashboard');
 require("dotenv").config()
-const jwt = require('jsonwebtoken')
 
 let GoogleStrategy = require('passport-google-oauth2').Strategy;
 
@@ -9,12 +8,13 @@ let GoogleStrategy = require('passport-google-oauth2').Strategy;
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: "http://localhost:4400/google/callback",
-  passReqToCallback: true
+  callbackURL: "/api/v1/auth/google/callback",
+  scope: ["profile", "email"],
 },
 
   async (request, accessToken, refreshToken, profile, done) => {
     //get the user data from google 
+ 
     const newUser = {
       googleId: profile.id,
       username: profile.displayName,
@@ -37,12 +37,15 @@ passport.use(new GoogleStrategy({
 
 // Serialize user to store in the session
 passport.serializeUser((user, done) => {
-  done(null, user.id);
+  console.log("reaching here user" , user);
+  done(null, user);
 });
 
 // Deserialize user from the session
 passport.deserializeUser(async (id, done) => {
   try {
+  console.log("reaching here id  " , id);
+
     const user = await UserModelDashboard.findById(id).exec();
     done(null, user);
   } catch (error) {
