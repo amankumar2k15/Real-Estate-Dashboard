@@ -57,13 +57,14 @@ const userById = async (req, res) => {
             return res.status(201).json(
                 success("User fetched Successfully", user, 201)
             )
-        } else {
-            console.log("checking", isApproved);
-            const user = await UserModelDashboard.findByIdAndUpdate(id, { isApproved }, { new: true })
-            return res.status(201).json(
-                success("User updated ", user, 201)
-            )
         }
+        //  else {
+        //     console.log("checking", isApproved);
+        //     const user = await UserModelDashboard.findByIdAndUpdate(id, { isApproved }, { new: true })
+        //     return res.status(201).json(
+        //         success("User updated ", user, 201)
+        //     )
+        // }
     } catch (err) {
         return res.status(500).json(error(err.message, 500))
     }
