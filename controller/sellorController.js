@@ -1,4 +1,4 @@
-const sellorModel = require("../model/sellorModel");
+const sellerModel = require("../model/sellorModel");
 const { uploadImg } = require("../utils/cloudinary");
 const { validationResult } = require("express-validator");
 
@@ -18,7 +18,7 @@ const sellerRegistration = async (req, res) => {
             }
         }
 
-        const newUser = new sellorModel(req.body);
+        const newUser = new sellerModel(req.body);
 
         // Upload files
         const uploadResults = {};
@@ -48,6 +48,20 @@ const sellerRegistration = async (req, res) => {
     }
 };
 
+const listSeller = async (req, res) => {
+    try {
+    const listAll = await sellerModel.find();
+    if(listAll.length === 0) return  res.status(204).json({ success: false, message : "No Record", result: [] });
+    return res.status(200).json({ success: true, message : "fetched successfully", result: listAll });
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+
 module.exports = {
-    sellerRegistration
+    sellerRegistration,
+    listSeller
 };

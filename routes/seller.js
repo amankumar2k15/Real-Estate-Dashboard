@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require("body-parser")
 const router = express.Router()
 
-const { sellerRegistration } = require("../controller/sellorController");
+const { sellerRegistration, listSeller } = require("../controller/sellorController");
 const checkSuperAdmin = require('../middleware/superAdmin');
 const authenticate = require('../middleware/userRoleAuth');
 const { validate } = require("../middleware/validate")
@@ -16,6 +16,7 @@ router.post("/create-seller", authenticate, checkSuperAdmin, upload.fields([
     { name: 'blankCheque', maxCount: 1 },
     { name: 'certificate_of_incorporate', maxCount: 1 },
 ]), validate(sellerRegister), sellerRegistration)
+router.get("/list-seller" , authenticate , checkSuperAdmin , listSeller)
 /*
 Super admin routes ===
 list users 
