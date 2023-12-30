@@ -3,22 +3,21 @@ const bodyParser = require("body-parser")
 const router = express.Router()
 
 const { buyerRegistration, listBuyer } = require("../controller/buyerController");
-const checkSuperAdmin = require('../middleware/superAdmin');
 const authenticate = require('../middleware/userRoleAuth');
 const { validate } = require("../middleware/validate")
-const { sellerRegister } = require("../validator/seller")
 const upload = require('../middleware/multer');
 const checkSellerAdmin = require('../middleware/sellerAdmin');
 const { buyerRegister } = require('../validator/buyer');
 
 
-router.post("/create-buyer", authenticate, checkSellerAdmin, upload.fields([
+router.post("/create-buyer", authenticate, upload.fields([
     { name: 'adhaar', maxCount: 1 },
     { name: 'pan', maxCount: 1 },
     { name: 'blankCheque', maxCount: 1 },
     { name: 'source_of_fund', maxCount: 1 },
 ]), validate(buyerRegister), buyerRegistration)
-router.get("/list-buyer" , authenticate , checkSellerAdmin , listBuyer)
+
+router.get("/list-buyer", authenticate, listBuyer)
 /*
 Super admin routes ===
 list users 

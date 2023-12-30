@@ -2,7 +2,7 @@ const { error } = require("../helper/baseResponse");
 
 const checkSellerAdmin = async (req, res, next) => {
   try {
-    if (req.user.role != "seller") {
+    if (req.user.role != "seller" && req.user.role != "super-admin") {
       return res.status(403).json(error("You are not Seller", 403));
     } else {
       return next()

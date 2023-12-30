@@ -49,7 +49,7 @@ const buyerRegistration = async (req, res) => {
 const listBuyer = async (req, res) => {
     try {
         const listAll = await buyerModel.find();
-    
+
         if (listAll.length === 0) return res.status(204).json({ success: false, message: "No Record", result: [] });
         return res.status(200).json({ success: true, message: "fetched successfully", result: listAll });
 
@@ -59,6 +59,7 @@ const listBuyer = async (req, res) => {
     }
 };
 
-module.exports ={
-    listBuyer
+module.exports = {
+    listBuyer,
+    buyerRegistration
 }
