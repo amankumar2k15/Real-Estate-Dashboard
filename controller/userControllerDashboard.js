@@ -71,14 +71,14 @@ const userById = async (req, res) => {
 
 const WhoAmI = async (req, res) => {
     try {
-        console.log(req.user.email , "req.user.email");
-        const buyerCheck = await buyerModel.findOne({email :req.user.email})
-        const sellerCheck = await sellerModel.findOne({email :req.user.email})
-        console.log("!!sellerCheck" , !!sellerCheck , sellerCheck)
-        const final ={...buyerCheck , ...sellerCheck}
+        console.log(req.user.email, "req.user.email");
+        const buyerCheck = await buyerModel.findOne({ email: req.user.email })
+        const sellerCheck = await sellerModel.findOne({ email: req.user.email })
+        console.log("!!sellerCheck", !!sellerCheck, sellerCheck)
+        const final = { ...buyerCheck, ...sellerCheck }
         console.log(final);
         return res.status(200).json(
-            success("User details fetched successfully",  (!buyerCheck && !sellerCheck) ? {role : "super-admin"}: buyerCheck ? buyerCheck : sellerCheck , 200)
+            success("User details fetched successfully", (!buyerCheck && !sellerCheck) ? { role: "super-admin" } : buyerCheck ? buyerCheck : sellerCheck, 200)
         )
     } catch (err) {
         return res.status(500).json(error(err.message, 500))

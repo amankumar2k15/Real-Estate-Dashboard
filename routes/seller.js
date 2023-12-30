@@ -16,7 +16,7 @@ router.post("/create-seller", authenticate, checkSuperAdmin, upload.fields([
     { name: 'blankCheque', maxCount: 1 },
     { name: 'certificate_of_incorporate', maxCount: 1 },
 ]), validate(sellerRegister), sellerRegistration)
-router.get("/list-seller" , authenticate , checkSuperAdmin , listSeller)
+router.get("/list-seller", authenticate, checkSuperAdmin, listSeller)
 /*
 Super admin routes ===
 list users 

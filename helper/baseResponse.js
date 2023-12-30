@@ -1,4 +1,4 @@
-const  success = (message, results, statusCode)=> {
+const success = (message, results, statusCode) => {
     return {
         message,
         error: false,
@@ -8,7 +8,7 @@ const  success = (message, results, statusCode)=> {
     }
 }
 
-const  error = (message, statusCode) => {
+const error = (message, statusCode) => {
     return {
         message,
         code: statusCode,
@@ -16,7 +16,7 @@ const  error = (message, statusCode) => {
     }
 }
 
-const  validateRes=(errors) => {
+const validateRes = (errors) => {
     return {
         message: errors,
         errors: true,
@@ -24,8 +24,8 @@ const  validateRes=(errors) => {
     }
 }
 
-module.exports =  {
-    success ,
-    error , 
+module.exports = {
+    success,
+    error,
     validateRes
 }

@@ -17,9 +17,9 @@ reject users
 pagination 
 filter 
 */
-router.get("/list-users",  authenticate ,   checkSuperAdmin , listUsers)
-router.get("/",  authenticate ,   checkSuperAdmin , userById)
-router.get("/who-am-i",  authenticate  , WhoAmI)
+router.get("/list-users", authenticate, checkSuperAdmin, listUsers)
+router.get("/", authenticate, checkSuperAdmin, userById)
+router.get("/who-am-i", authenticate, WhoAmI)
 
 // router.patch("/:id",  authenticate ,   checkSuperAdmin , userById)
 

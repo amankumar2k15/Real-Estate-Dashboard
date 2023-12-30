@@ -51,12 +51,12 @@ const sellerRegistration = async (req, res) => {
 
 const listSeller = async (req, res) => {
     try {
-        const users =await UserModelDashboard.find()
+        const users = await UserModelDashboard.find()
         const listAll = await sellerModel.find();
         // console.log(users , "usersusersusersusersusersrs");
-        const final = { profile : users.profile ,  ...listAll[0] }
-        console.log(final , "final");
-        console.log(final , "listing ");
+        const final = { profile: users.profile, ...listAll[0] }
+        console.log(final, "final");
+        console.log(final, "listing ");
 
         if (listAll.length === 0) return res.status(204).json({ success: false, message: "No Record", result: [] });
         return res.status(200).json({ success: true, message: "fetched successfully", result: listAll });

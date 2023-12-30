@@ -5,7 +5,7 @@ const { error } = require("../helper/baseResponse");
 
 const authenticate = (req, res, next) => {
 
-    console.log("reaching here");
+  console.log("reaching here");
   const userToken = req.headers.authorization;
 
   if (!userToken) {
