@@ -1,4 +1,5 @@
 const sellerModel = require("../model/sellorModel");
+const UserModelDashboard = require("../model/userModelDashboard");
 const { uploadImg } = require("../utils/cloudinary");
 const { validationResult } = require("express-validator");
 
@@ -50,9 +51,15 @@ const sellerRegistration = async (req, res) => {
 
 const listSeller = async (req, res) => {
     try {
-    const listAll = await sellerModel.find();
-    if(listAll.length === 0) return  res.status(204).json({ success: false, message : "No Record", result: [] });
-    return res.status(200).json({ success: true, message : "fetched successfully", result: listAll });
+        const users =await UserModelDashboard.find()
+        const listAll = await sellerModel.find();
+        // console.log(users , "usersusersusersusersusersrs");
+        const final = { profile : users.profile ,  ...listAll[0] }
+        console.log(final , "final");
+        console.log(final , "listing ");
+
+        if (listAll.length === 0) return res.status(204).json({ success: false, message: "No Record", result: [] });
+        return res.status(200).json({ success: true, message: "fetched successfully", result: listAll });
 
     } catch (err) {
         console.log(err);

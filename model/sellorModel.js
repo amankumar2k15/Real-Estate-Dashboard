@@ -10,7 +10,7 @@ const sellerSchema = mongoose.Schema({
     location: { type: String, default: null },
     role: {
         type: String,
-        default: "admin",
+        default: "seller",
     },
     isApproved: {
         type: Boolean,

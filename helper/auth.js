@@ -37,14 +37,12 @@ passport.use(new GoogleStrategy({
 
 // Serialize user to store in the session
 passport.serializeUser((user, done) => {
-  console.log("reaching here user", user);
   done(null, user);
 });
 
 // Deserialize user from the session
 passport.deserializeUser(async (id, done) => {
   try {
-    console.log("reaching here id  ", id);
 
     const user = await UserModelDashboard.findById(id).exec();
     done(null, user);

@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require("body-parser")
 const router = express.Router()
 
-const { register, listUsers, userById } = require("../controller/userControllerDashboard");
+const { register, listUsers, userById, WhoAmI } = require("../controller/userControllerDashboard");
 const checkSuperAdmin = require('../middleware/superAdmin');
 const authenticate = require('../middleware/userRoleAuth');
 
@@ -19,6 +19,8 @@ filter
 */
 router.get("/list-users",  authenticate ,   checkSuperAdmin , listUsers)
 router.get("/",  authenticate ,   checkSuperAdmin , userById)
+router.get("/who-am-i",  authenticate  , WhoAmI)
+
 // router.patch("/:id",  authenticate ,   checkSuperAdmin , userById)
 
 
