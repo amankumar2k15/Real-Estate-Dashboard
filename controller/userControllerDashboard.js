@@ -2,6 +2,7 @@ const UserModelDashboard = require("../model/userModelDashboard")
 const { error, success } = require("../helper/baseResponse")
 const bcrypt = require("bcrypt")
 const sellerModel = require("../model/sellorModel")
+const buyerModel = require("../model/buyerModel")
 
 const register = async (req, res) => {
     try {
@@ -71,11 +72,13 @@ const userById = async (req, res) => {
 const WhoAmI = async (req, res) => {
     try {
         console.log(req.user.email , "req.user.email");
-        // const sellerCheck = await sellerModel.find({email :req.user.email})
+        const buyerCheck = await buyerModel.findOne({email :req.user.email})
         const sellerCheck = await sellerModel.findOne({email :req.user.email})
         console.log("!!sellerCheck" , !!sellerCheck , sellerCheck)
+        const final ={...buyerCheck , ...sellerCheck}
+        console.log(final);
         return res.status(200).json(
-            success("User details fetched successfully", !sellerCheck ? {role : "super-admin"} : sellerCheck, 200)
+            success("User details fetched successfully",  (!buyerCheck && !sellerCheck) ? {role : "super-admin"}: buyerCheck ? buyerCheck : sellerCheck , 200)
         )
     } catch (err) {
         return res.status(500).json(error(err.message, 500))
