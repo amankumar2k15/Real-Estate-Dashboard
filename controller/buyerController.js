@@ -46,6 +46,19 @@ const buyerRegistration = async (req, res) => {
 };
 
 
+const listBuyer = async (req, res) => {
+    try {
+        const listAll = await buyerModel.find();
+    
+        if (listAll.length === 0) return res.status(204).json({ success: false, message: "No Record", result: [] });
+        return res.status(200).json({ success: true, message: "fetched successfully", result: listAll });
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 module.exports ={
-    buyerRegistration
+    listBuyer
 }
