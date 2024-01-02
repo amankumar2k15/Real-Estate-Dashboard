@@ -55,20 +55,36 @@ const listSeller = async (req, res) => {
         const listAll = await sellerModel.find();
         // console.log(users , "usersusersusersusersusersrs");
         const final = { profile: users.profile, ...listAll[0] }
-        console.log(final, "final");
-        console.log(final, "listing ");
+        // console.log(final, "final");
+        // console.log(final, "listing ");
 
         if (listAll.length === 0) return res.status(204).json({ success: false, message: "No Record", result: [] });
         return res.status(200).json({ success: true, message: "fetched successfully", result: listAll });
 
     } catch (err) {
-        console.log(err);
+        // console.log(err);
         res.status(500).json({ success: false, message: err.message });
     }
 };
 
+const deleteSeller = async (req, res) => {
+    const id = req.params.id
+    console.log(id)
+
+    try {
+        const findUser = await sellerModel.findOne({ _id: id })
+        if (!findUser) return res.status(204).json({ success: false, message: "User does not found" })
+
+        await sellerModel.findByIdAndDelete(id)
+        return res.status(200).json({ success: true, message: `${findUser.fullName} deleted successfully` })
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ success: false, message: err.message })
+    }
+}
 
 module.exports = {
     sellerRegistration,
-    listSeller
+    listSeller,
+    deleteSeller
 };

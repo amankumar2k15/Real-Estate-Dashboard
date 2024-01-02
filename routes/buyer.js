@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require("body-parser")
 const router = express.Router()
 
-const { buyerRegistration, listBuyer } = require("../controller/buyerController");
+const { buyerRegistration, listBuyer, deleteBuyer } = require("../controller/buyerController");
 const authenticate = require('../middleware/userRoleAuth');
 const { validate } = require("../middleware/validate")
 const upload = require('../middleware/multer');
@@ -18,6 +18,7 @@ router.post("/create-buyer", authenticate, upload.fields([
 ]), validate(buyerRegister), buyerRegistration)
 
 router.get("/list-buyer", authenticate, listBuyer)
+router.delete("/delete-buyer/:id", authenticate, deleteBuyer)
 /*
 Super admin routes ===
 list users 

@@ -43,6 +43,7 @@ const listUsers = async (req, res) => {
         return res.status(500).json(error(err.message, 500))
     }
 }
+
 const userById = async (req, res) => {
     try {
         const { isApproved, id, search } = req.query;

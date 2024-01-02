@@ -59,7 +59,24 @@ const listBuyer = async (req, res) => {
     }
 };
 
+const deleteBuyer = async (req, res) => {
+    const id = req.params.id
+
+    try {
+        const findUser = await buyerModel.findOne({ _id: id })
+        if (!findUser) return res.status(204).json({ success: false, message: "User does not found" })
+
+        await buyerModel.findByIdAndDelete(id)
+        return res.status(200).json({ success: true, message: `${findUser.fullName} deleted successfully` })
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ success: false, message: err.message })
+    }
+}
+
 module.exports = {
     listBuyer,
-    buyerRegistration
+    buyerRegistration,
+    deleteBuyer
 }
