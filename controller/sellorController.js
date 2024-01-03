@@ -3,6 +3,11 @@ const UserModelDashboard = require("../model/userModelDashboard");
 const { uploadImg } = require("../utils/cloudinary");
 const { validationResult } = require("express-validator");
 
+
+
+
+
+
 const sellerRegistration = async (req, res) => {
     try {
         // Validate request body
@@ -48,6 +53,11 @@ const sellerRegistration = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+
+
+
+
+
 
 const listSeller = async (req, res) => {
     try {
