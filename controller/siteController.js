@@ -19,18 +19,23 @@ const siteRegister = async (req, res) => {
     }
 
 
-    const uploadResult = await uploadImg(req.files["site_image"].path, req.files["site_image"].originalname);
+    const uploadResult = await uploadImg(req.files["site_image"][0].path, req.files["site_image"][0].originalname);
     if (!uploadResult.success) {
-      t
       return res.status(500).json({ success: false, message: "Error uploading Site image" });
     }
 
-    if (!Array.isArray(buildings)) {
+    console.log("aman   ", !Array.isArray(buildings))
+    let buildingsArr = JSON.parse(buildings)
+    console.log(buildingsArr)
+
+    console.log(!Array.isArray(buildingsArr))
+
+    if (!Array.isArray(buildingsArr)) {
       return res.status(400).json({ message: 'Buildings must be an array' });
     }
 
     // Validate each building in the array
-    for (const building of buildings) {
+    for (const building of buildingsArr) {
       if (!building.block || !Array.isArray(building.flats)) {
         return res.status(400).json({ message: 'Each building must have a block and an array of flats' });
       }

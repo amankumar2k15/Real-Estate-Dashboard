@@ -16,8 +16,6 @@ const siteRegisterValidator = [
     body("site_description")
         .notEmpty().withMessage("Please enter site_description ")
         .isString().withMessage("Please enter valid site_description"),
-    body("block").notEmpty().withMessage("Please enter block name"),
-    body("flat_type").notEmpty().withMessage("Please enter site  flat_type"),
 ];
 
 module.exports = {
