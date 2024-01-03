@@ -7,7 +7,7 @@ require("dotenv").config()
 router.post("/login", async (req, res) => {
 	if (req.body.email) {
 
-		await sendEmail({ email: "Thanks for the request", xubject: "Otp is ", message: "otp is " + "" + "" })
+		await sendEmail({ email: "Thanks for the request", subject: "Otp is ", message: "otp is " + "" + "" })
 		return res.status(200).json({
 			error: false,
 			message: "Otp sent",
