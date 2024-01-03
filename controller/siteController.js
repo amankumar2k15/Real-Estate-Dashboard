@@ -11,17 +11,18 @@ const siteRegister = async (req, res) => {
   try {
     const { site_name, site_location, site_description } = req.body;
     // Validate file arrays
+    console.log("aman req files ", req.file)
 
-    if (!req.files["site_image"]) {
+    if (!req.file) {
       return res.status(400).json({ success: false, message: `Please upload site_image file` });
     }
 
-    const uploadResult = await uploadImg(req.files["site_image"].path, req.files["site_image"].originalname);
+    const uploadResult = await uploadImg(req.file.path, req.file.originalname);
     if (!uploadResult.success) {
       return res.status(500).json({ success: false, message: "Error uploading Site image" });
     }
     const newSite = new SiteModel({
-      sellerId : req.user.id,
+      sellerId: req.user.id,
       site_name,
       site_image: uploadResult.url,
       site_location,
