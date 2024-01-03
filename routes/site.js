@@ -9,9 +9,7 @@ const { siteRegisterValidator } = require("../validator/site")
 const upload = require('../middleware/multer');
 
 
-router.post("/create-site", upload.fields([
-    { name: 'site_image', maxCount: 5 },
-]), validate(siteRegisterValidator), siteRegister)
+router.post("/create-site",  authenticate ,  upload.single("site_image"), validate(siteRegisterValidator), siteRegister)
 
 
 // router.post("/create-seller", authenticate, checkSuperAdmin, upload.fields([

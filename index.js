@@ -9,16 +9,6 @@ const MONGODB_URL = process.env.DB_URL
 const passport = require("passport");
 const session = require("express-session");
 require("./helper/auth")
-const cloudinary = require('cloudinary').v2;
-
-
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-
 
 // Initialize Express app
 const app = express();
@@ -56,35 +46,7 @@ app.use('/api/v1/', require('./routes'))
 app.get("/", (req, res) => {
     res.send("Server is up and running on port " + PORT)
 })
-
-// app.get("/register",
-//     passport.authenticate("google", { scope: ['email', 'profile'] })
-// );
-
-// app.get("/google/callback",
-//     passport.authenticate("google", { successRedirect : "http://localhost:5173/dashboard/home", failureRedirect : "http://localhost:5173/auth/sign-in" }),async (req,res)=>{
-//         console.log(req);
-//         let payload = {
-//             username: req.user.username,
-//             role: req.user.role,
-//             id: req.user._id
-//         }
-//         const options = {
-//             expiresIn: '1d', // Token will expire in one day
-//         };
-//         const jwt_token = await jwt.sign(payload, process.env.JWT_KEY, options);
-//         console.log("req accepted-----------------------------------------", req.user)
-//         res.send(jwt_token)
-//         res.status(200).json(success("Logged in ", {text: `${req.user.username}, logged in `, token: jwt_token }, 200));
-//     })
-
-
-
-
 // ------------------------CONTINUE WITH GOOGLE ends------------------------
-
-
-
 
 // Connecting to Database 
 mongoose.connect(MONGODB_URL).then(() => {
