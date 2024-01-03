@@ -9,6 +9,15 @@ const MONGODB_URL = process.env.DB_URL
 const passport = require("passport");
 const session = require("express-session");
 require("./helper/auth")
+const cloudinary = require('cloudinary').v2;
+
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 
 
 // Initialize Express app

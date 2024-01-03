@@ -2,6 +2,7 @@ const siteModel = require("../model/siteModel");
 const SiteModel = require("../model/siteModel");
 const UserModelDashboard = require("../model/userModelDashboard");
 const { uploadImg } = require("../utils/cloudinary");
+const cloudinary = require('cloudinary').v2;
 const { validationResult } = require("express-validator");
 
 
@@ -11,7 +12,18 @@ const siteRegister = async (req, res) => {
 
     try {
         const { site_name, site_image, site_location, site_description, buildings } = req.body;
-    
+            // Validate file arrays
+     
+            if (!req.files["site_image"] ) {
+                return res.status(400).json({ success: false, message: `Please upload site_image file` });
+            }
+        
+
+        const uploadResult = await uploadImg(req.files["site_image"].path, req.files["site_image"].originalname);
+        //         if (!uploadResult.success) {t
+        //             return res.status(500).json({ success: false, message: "Error uploading image" });
+        //         }
+        
         // Validate that buildings is an array
         if (!Array.isArray(buildings)) {
           return res.status(400).json({ message: 'Buildings must be an array' });
@@ -22,11 +34,9 @@ const siteRegister = async (req, res) => {
           if (!building.block || !Array.isArray(building.flats)) {
             return res.status(400).json({ message: 'Each building must have a block and an array of flats' });
           }
-    
           // Upload flat images to Cloudinary
           for (const flat of building.flats) {
             const imageBuffer = req.files.find(file => file.originalname === flat.flat_image).buffer;
-    
             const cloudinaryResponse = await cloudinary.uploader.upload_stream(
               { resource_type: 'image' },
               async (error, result) => {
@@ -43,7 +53,7 @@ const siteRegister = async (req, res) => {
     
         const newSite = new Site({
           site_name,
-          site_image,
+          site_image : uploadResult.url,
           site_location,
           site_description,
           buildings,
@@ -107,9 +117,8 @@ const siteRegister = async (req, res) => {
     //     // Upload files
     //     const uploadResults = {};
     //     for (const file of requiredFiles) {
-
-    //         const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
-    //         if (!uploadResult.success) {
+    //         const uploadResult = await uploadImg(req.files[file][0].pah, req.files[file][0].originalname);
+    //         if (!uploadResult.success) {t
     //             return res.status(500).json({ success: false, message: "Error uploading image" });
     //         }
     //         // Update user properties with Cloudinary URLs
