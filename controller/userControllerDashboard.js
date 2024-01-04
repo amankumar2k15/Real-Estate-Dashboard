@@ -150,7 +150,7 @@ const WhoAmI = async (req, res) => {
             )
         }else{
             return res.status(200).json(
-                success("Super Admin details fetched successfully", {username : "Super-Admin" , role : "super-admin"} , 200)
+                success("Super Admin details fetched successfully", {fullName : "Super-Admin" , role : "super-admin"} , 200)
             ) 
         }
     } catch (err) {
