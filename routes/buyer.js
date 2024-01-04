@@ -15,9 +15,9 @@ router.post("/create-buyer", authenticate, upload.fields([
     { name: 'pan', maxCount: 1 },
     { name: 'blankCheque', maxCount: 1 },
     { name: 'source_of_fund', maxCount: 1 },
-]), validate(buyerRegister),checkSellerAdmin , buyerRegistration)
+]), validate(buyerRegister), checkSellerAdmin, buyerRegistration)
 
-router.get("/list-buyer", authenticate, checkSellerAdmin , listBuyer)
+router.get("/list-buyer", authenticate, checkSellerAdmin, listBuyer)
 router.delete("/delete-buyer/:id", authenticate, deleteBuyer)
 
 

@@ -1,12 +1,15 @@
 const buyerModel = require("../model/buyerModel");
 const { uploadImg } = require("../utils/cloudinary");
 const { validationResult } = require("express-validator");
+const bcrypt = require('bcrypt');
+const generatePassword = require("../helper/generatePassword");
+const sendMail = require("../helper/sendMail");
 
 const buyerRegistration = async (req, res) => {
     try {
         const salt = await bcrypt.genSalt(10);
         let password = generatePassword(req.body.fullName)
-        const securedPassword = await bcrypt.hash( password ,  salt);
+        const securedPassword = await bcrypt.hash(password, salt);
         // Validate request body
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -21,7 +24,7 @@ const buyerRegistration = async (req, res) => {
             }
         }
 
-        const newUser = new buyerModel({...req.body , isApproved : true , password : securedPassword , sellerId : req.user.id});
+        const newUser = new buyerModel({ ...req.body, isApproved: true, password: securedPassword, sellerId: req.user.id });
 
         // Upload files
         const uploadResults = {};
@@ -40,7 +43,7 @@ const buyerRegistration = async (req, res) => {
 
         await newUser.save();
         const message = `Your account is registered successfully in Real State Bharat Escrow as a Buyer , Here are your credentials Email: ${req.body.email} and Password: ${password}`;
-        await sendMail(req.body.email , "Welcome Buyer" , message);
+        await sendMail(req.body.email, "Welcome Buyer", message);
         res.status(200).json({ success: true, message, result: newUser });
     } catch (err) {
         console.log(err);
@@ -51,7 +54,7 @@ const buyerRegistration = async (req, res) => {
 
 const listBuyer = async (req, res) => {
     try {
-        const listAll = await buyerModel.find({sellerId : req.user.id});
+        const listAll = await buyerModel.find({ sellerId: req.user.id });
 
         if (listAll.length === 0) return res.status(204).json({ success: false, message: "No Record", result: [] });
         return res.status(200).json({ success: true, message: "fetched successfully", result: listAll });
