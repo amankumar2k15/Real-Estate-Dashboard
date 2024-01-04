@@ -51,7 +51,7 @@ const buyerRegistration = async (req, res) => {
 
 const listBuyer = async (req, res) => {
     try {
-        const listAll = await buyerModel.find();
+        const listAll = await buyerModel.find({sellerId : req.user.id});
 
         if (listAll.length === 0) return res.status(204).json({ success: false, message: "No Record", result: [] });
         return res.status(200).json({ success: true, message: "fetched successfully", result: listAll });

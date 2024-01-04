@@ -134,15 +134,25 @@ const userById = async (req, res) => {
 
 const WhoAmI = async (req, res) => {
     try {
-        // console.log(req.user.email, "req.user.email");
-        // const buyerCheck = await buyerModel.findOne({ email: req.user.email })
-        // const sellerCheck = await sellerModel.findOne({ email: req.user.email })
-        // console.log("!!sellerCheck", !!sellerCheck, sellerCheck)
-        // const final = { ...buyerCheck, ...sellerCheck }
-        // console.log(final);
-        // return res.status(200).json(
-        //     success("User details fetched successfully", (!buyerCheck && !sellerCheck) ? { role: "super-admin" } : buyerCheck ? buyerCheck : sellerCheck, 200)
-        // )
+        const [sellerResult, buyerResult] = await Promise.all([
+            sellerModel.findById(req.user.id),
+            buyerModel.findById(req.user.id)
+        ]);
+
+        if (!!sellerResult) {
+            return res.status(200).json(
+                success("Seller details fetched successfully", sellerResult , 200)
+            )
+        }
+        else if (!!buyerResult) {
+            return res.status(200).json(
+                success("Buyer details fetched successfully", buyerResult , 200)
+            )
+        }else{
+            return res.status(200).json(
+                success("Super Admin details fetched successfully", {username : "Super-Admin" , role : "super-admin"} , 200)
+            ) 
+        }
     } catch (err) {
         return res.status(500).json(error(err.message, 500))
     }
