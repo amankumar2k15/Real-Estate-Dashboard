@@ -2,6 +2,9 @@ const mongoose = require("mongoose")
 
 const sellerSchema = mongoose.Schema({
     companyName: { type: String, default: null },
+    username: { type: String, default: null },
+    password: { type: String, default: null },
+    profile: { type: String, default: null },
     fullName: { type: String, default: null },
     userId: { type: String, default: null },
     email: { type: String, default: null },
@@ -25,7 +28,7 @@ const sellerSchema = mongoose.Schema({
     certificate_of_incorporate: { type: String, default: null }
 })
 
-sellerSchema.index({ fullName: 'text' });
+sellerSchema.index({ fullName: 'text'  , username : "text"});
 
 const sellerModel = mongoose.model("sellerModel", sellerSchema)
 

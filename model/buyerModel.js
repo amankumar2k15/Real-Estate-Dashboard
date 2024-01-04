@@ -2,8 +2,11 @@ const mongoose = require("mongoose")
 
 const buyerSchema = mongoose.Schema({
     siteId: { type: String, default: null },
+    sellerId: { type: String, default: null },
     fullName: { type: String, default: null },
-    userId: { type: String, default: null },
+    username: { type: String, default: null },
+    password: { type: String, default: null },
+    profile: { type: String, default: null },
     email: { type: String, default: null },
     phone: { type: Number, default: null },
     address: { type: String, default: null },
@@ -25,7 +28,7 @@ const buyerSchema = mongoose.Schema({
     source_of_fund: { type: String, default: null },
 })
 
-buyerSchema.index({ fullName: 'text' });
+buyerSchema.index({ fullName: 'text' , username : "text" });
 
 const buyerModel = mongoose.model("buyerModel", buyerSchema)
 

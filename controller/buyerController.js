@@ -4,6 +4,9 @@ const { validationResult } = require("express-validator");
 
 const buyerRegistration = async (req, res) => {
     try {
+        const salt = await bcrypt.genSalt(10);
+        let password = generatePassword(req.body.fullName)
+        const securedPassword = await bcrypt.hash( password ,  salt);
         // Validate request body
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -18,7 +21,7 @@ const buyerRegistration = async (req, res) => {
             }
         }
 
-        const newUser = new buyerModel(req.body);
+        const newUser = new buyerModel({...req.body , isApproved : true , password : securedPassword , sellerId : req.user.id});
 
         // Upload files
         const uploadResults = {};
@@ -36,8 +39,8 @@ const buyerRegistration = async (req, res) => {
         newUser.source_of_fund = uploadResults.source_of_fund;
 
         await newUser.save();
-        const message = "buyer registered";
-        // await sendEmail({ username: newUser.fullName, email: newUser.email, phone: newUser.phone, subject: "Sellor request registered successfully", message: message });
+        const message = `Your account is registered successfully in Real State Bharat Escrow as a Buyer , Here are your credentials Email: ${req.body.email} and Password: ${password}`;
+        await sendMail(req.body.email , "Welcome Buyer" , message);
         res.status(200).json({ success: true, message, result: newUser });
     } catch (err) {
         console.log(err);

@@ -1,20 +1,26 @@
 const sellerModel = require("../model/sellorModel");
-const UserModelDashboard = require("../model/userModelDashboard");
 const { uploadImg } = require("../utils/cloudinary");
 const { validationResult } = require("express-validator");
+const bcrypt = require('bcrypt');
+const sendMail = require("../helper/sendMail");
 
 
 
 
 
 
-const sellerRegistration = async (req, res) => {
+const sellerRegistration = async (req, res) =>{
     try {
+        const salt = await bcrypt.genSalt(10);
+        let password = generatePassword(req.body.fullName)
+        const securedPassword = await bcrypt.hash( password ,  salt);
         // Validate request body
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ success: false, errors: errors.array() });
         }
+
+
 
         // Validate file arrays
         const requiredFiles = ["adhaar", "companyPan", "blankCheque", "certificate_of_incorporate"];
@@ -24,7 +30,7 @@ const sellerRegistration = async (req, res) => {
             }
         }
 
-        const newUser = new sellerModel(req.body);
+        const newUser = new sellerModel({...req.body , isApproved : true , password : securedPassword});
 
         // Upload files
         const uploadResults = {};
@@ -41,12 +47,9 @@ const sellerRegistration = async (req, res) => {
         newUser.companyPan = uploadResults.companyPan;
         newUser.blankCheque = uploadResults.blankCheque;
         newUser.certificate_of_incorporate = uploadResults.certificate_of_incorporate;
-
         await newUser.save();
-
-        const message = "Your account is registered successfully, and Bharat Escrow will let you know when your account is approved.";
-        // await sendEmail({ username: newUser.fullName, email: newUser.email, phone: newUser.phone, subject: "Sellor request registered successfully", message: message });
-
+        const message = `Your account is registered successfully in  Real State Bharat Escrow as a Seller, Here are your credentials Email: ${req.body.email} and Password: ${password}`;
+        await sendMail(req.body.email , "Welcome Buyer" , message);
         res.status(200).json({ success: true, message, result: newUser });
     } catch (err) {
         console.log(err);
@@ -61,18 +64,10 @@ const sellerRegistration = async (req, res) => {
 
 const listSeller = async (req, res) => {
     try {
-        const users = await UserModelDashboard.find()
         const listAll = await sellerModel.find();
-        // console.log(users , "usersusersusersusersusersrs");
-        const final = { profile: users.profile, ...listAll[0] }
-        // console.log(final, "final");
-        // console.log(final, "listing ");
-
         if (listAll.length === 0) return res.status(204).json({ success: false, message: "No Record", result: [] });
         return res.status(200).json({ success: true, message: "fetched successfully", result: listAll });
-
     } catch (err) {
-        // console.log(err);
         res.status(500).json({ success: false, message: err.message });
     }
 };

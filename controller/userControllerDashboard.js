@@ -1,33 +1,96 @@
-const UserModelDashboard = require("../model/userModelDashboard")
 const { error, success } = require("../helper/baseResponse")
 const bcrypt = require("bcrypt")
 const sellerModel = require("../model/sellorModel")
 const buyerModel = require("../model/buyerModel")
+require('dotenv').config();
+
+
+// useful
+
+const login = async (req, res) => {
+    try {
+        var dbPassword , user
+        // Use Promise.all to execute queries concurrently
+
+        // adding suoer admin layer
+        
+
+        if(req.body.email === "admin@gmail.com" && req.body.password === "Admin@123"){
+            const payload = {
+                username: null,
+                role: user.role,
+                id :null
+            };
+            const options = {
+                expiresIn: '1d', // Token will expire in one day
+            };
+    
+            const jwt_token = await jwt.sign(payload, process.env.JWT_KEY, options);
+    
+           const result = {
+                username: "SUPER ADMIN",
+                role: "super-admin",
+                token: jwt_token,
+            };
+    
+            return res.status(200).json(success("Logged in successfully", result, 200));
+        }
+
+
+
+
+
+
+
+        
+        const [sellerResult, buyerResult] = await Promise.all([
+            sellerModel.findOne({ email: req.body.email }),
+            buyerModel.findOne({ email: req.body.email })
+        ]);
+        if (!!sellerResult){ dbPassword = sellerResult.password ; user = sellerResult}
+        else if (!!buyerResult){ dbPassword = buyerResult.password ; user = buyerResult}
+        const isPasswordCorrect = await bcrypt.compare(dbPassword, req.body.password);
+        if (!isPasswordCorrect)
+            return res.status(400).json(error("Wrong Password Entered", 400));
+        const payload = {
+            username: user.fullName,
+            role: user.role,
+            id : user._id
+        };
+        const options = {
+            expiresIn: '1d', // Token will expire in one day
+        };
+
+        const jwt_token = await jwt.sign(payload, process.env.JWT_KEY, options);
+
+       const result = {
+            username: user.fullName,
+            role: user.role,
+            token: jwt_token,
+        };
+
+        return res.status(200).json(success("Logged in successfully", result, 200));
+    } catch (err) {
+        return res.status(500).json(error(err.message), 500);
+    }
+};
+
+
+
+// un used 
+
+
 
 const register = async (req, res) => {
     try {
-        const { password } = req.body
-        const salt = bcrypt.genSaltSync(10)
-        const hashPassword = bcrypt.hashSync(password, salt)
-        const newUser = new UserModelDashboard({ ...req.body, password: hashPassword })
-        return res.status(201).json(
-            success("User Created Successfully", newUser, 201)
-        )
+
     } catch (err) {
         return res.status(500).json(error(err.message, 500))
     }
 }
-
-
 const userKYCRegistration = async (req, res) => {
     try {
-        /*
-        Validation 
-        */
-        const all = await UserModelDashboard.find()
-        return res.status(201).json(
-            success("User fetched Successfully", all, 201)
-        )
+
     } catch (err) {
         return res.status(500).json(error(err.message, 500))
     }
@@ -35,10 +98,7 @@ const userKYCRegistration = async (req, res) => {
 
 const listUsers = async (req, res) => {
     try {
-        const all = await UserModelDashboard.find()
-        return res.status(201).json(
-            success("User fetched Successfully", all, 201)
-        )
+
     } catch (err) {
         return res.status(500).json(error(err.message, 500))
     }
@@ -46,25 +106,19 @@ const listUsers = async (req, res) => {
 
 const userById = async (req, res) => {
     try {
-        const { isApproved, id, search } = req.query;
-        if (search) {
-            const users = await UserModelDashboard.find({ username: { $regex: search, $options: 'i' } }, { username: 1 });
-            return res.status(201).json(
-                success("Search result", users, 201)
-            )
-        } else if (!isApproved) {
-            const user = await UserModelDashboard.findById(id)
-            return res.status(201).json(
-                success("User fetched Successfully", user, 201)
-            )
-        }
-        //  else {
-        //     console.log("checking", isApproved);
-        //     const user = await UserModelDashboard.findByIdAndUpdate(id, { isApproved }, { new: true })
+        // const { isApproved, id, search } = req.query;
+        // if (search) {
+        //     const users = await UserModelDashboard.find({ username: { $regex: search, $options: 'i' } }, { username: 1 });
         //     return res.status(201).json(
-        //         success("User updated ", user, 201)
+        //         success("Search result", users, 201)
+        //     )
+        // } else if (!isApproved) {
+        //     const user = await UserModelDashboard.findById(id)
+        //     return res.status(201).json(
+        //         success("User fetched Successfully", user, 201)
         //     )
         // }
+
     } catch (err) {
         return res.status(500).json(error(err.message, 500))
     }
@@ -72,19 +126,20 @@ const userById = async (req, res) => {
 
 const WhoAmI = async (req, res) => {
     try {
-        console.log(req.user.email, "req.user.email");
-        const buyerCheck = await buyerModel.findOne({ email: req.user.email })
-        const sellerCheck = await sellerModel.findOne({ email: req.user.email })
-        console.log("!!sellerCheck", !!sellerCheck, sellerCheck)
-        const final = { ...buyerCheck, ...sellerCheck }
-        console.log(final);
-        return res.status(200).json(
-            success("User details fetched successfully", (!buyerCheck && !sellerCheck) ? { role: "super-admin" } : buyerCheck ? buyerCheck : sellerCheck, 200)
-        )
+        // console.log(req.user.email, "req.user.email");
+        // const buyerCheck = await buyerModel.findOne({ email: req.user.email })
+        // const sellerCheck = await sellerModel.findOne({ email: req.user.email })
+        // console.log("!!sellerCheck", !!sellerCheck, sellerCheck)
+        // const final = { ...buyerCheck, ...sellerCheck }
+        // console.log(final);
+        // return res.status(200).json(
+        //     success("User details fetched successfully", (!buyerCheck && !sellerCheck) ? { role: "super-admin" } : buyerCheck ? buyerCheck : sellerCheck, 200)
+        // )
     } catch (err) {
         return res.status(500).json(error(err.message, 500))
     }
 }
+
 
 
 module.exports = {
@@ -92,5 +147,6 @@ module.exports = {
     listUsers,
     userById,
     userKYCRegistration,
-    WhoAmI
+    WhoAmI,
+    login
 };
