@@ -50,7 +50,7 @@ const sellerRegistration = async (req, res) => {
         newUser.certificate_of_incorporate = uploadResults.certificate_of_incorporate;
         await newUser.save();
         const message = `Your account is registered successfully in  Real State Bharat Escrow as a Seller, Here are your credentials Email: ${req.body.email} and Password: ${password}`;
-        await sendMail(req.body.email, "Welcome Buyer", message);
+        await sendMail(req.body.email, "Welcome Seller", message);
         res.status(200).json({ success: true, message, result: newUser });
     } catch (err) {
         console.log(err);

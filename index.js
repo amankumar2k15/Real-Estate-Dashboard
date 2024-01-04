@@ -24,7 +24,7 @@ app.use(passport.initialize())
 app.use(passport.session())
 // Configure Middleware
 app.use(cors({
-    origin: "http://localhost:5174",
+    origin: "http://localhost:5173",
     // origin: "https://realestate.bharatescrow.com/",
     methods: "GET,POST,PUT,DELETE",
     credentials: true,

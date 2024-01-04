@@ -48,19 +48,18 @@ const login = async (req, res) => {
             sellerModel.findOne({ email: req.body.email }),
             buyerModel.findOne({ email: req.body.email })
         ]);
-        if (!!sellerResult) { console.log("Seller Result:", sellerResult); dbPassword = sellerResult.password; user = sellerResult }
-        else if (!!buyerResult) { console.log("Buyer Result:", buyerResult); dbPassword = buyerResult.password; user = buyerResult }
-        const isPasswordCorrect = await bcrypt.compare(dbPassword.trim(), req.body.password.trim());
-        console.log("sellerPassword", sellerResult.password)
-        console.log("Seller Password Length:", sellerResult.password.trim().length);
-        console.log("dbPassword", dbPassword)
-        console.log("DB Password Length:", dbPassword.trim().length);
-        console.log("isPasswordCorrect", isPasswordCorrect)
-        const directComparisonResult = dbPassword.trim() === req.body.password.trim();
-        console.log("Direct comparison result", directComparisonResult);
 
-        if (!isPasswordCorrect)
-            return res.status(400).json(error("Wrong Password Entered", 400));
+
+
+        if (!!sellerResult) { console.log("Seller Result:", sellerResult); dbPassword = sellerResult?.password; user = sellerResult }
+        else if (!!buyerResult) { console.log("Buyer Result:", buyerResult); dbPassword = buyerResult?.password; user = buyerResult }
+        if (dbPassword) {
+            const isPasswordCorrect = await bcrypt.compare(req.body.password, dbPassword);
+            if (!isPasswordCorrect)
+                return res.status(400).json(error("Wrong Password Entered", 400));
+        } else {
+            return res.status(500).json(error("You are not registered", 500));
+        }
         const payload = {
             username: user.fullName,
             role: user.role,

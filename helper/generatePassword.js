@@ -11,8 +11,7 @@ const generatePassword = (username) => {
   let min = max / 10;
   let number = Math.floor(Math.random() * (max - min + 1)) + min;
 
-  return `${username}@123`;
-  // return `${username}@${("" + number).substring(add)}`;
+  return `${username}@${("" + number).substring(add)}`;
 };
 
 module.exports = generatePassword;
