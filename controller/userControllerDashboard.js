@@ -1,5 +1,6 @@
 const { error, success } = require("../helper/baseResponse")
 const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
 const sellerModel = require("../model/sellorModel")
 const buyerModel = require("../model/buyerModel")
 require('dotenv').config();
@@ -8,54 +9,62 @@ require('dotenv').config();
 // useful
 
 const login = async (req, res) => {
+    console.log("aman", req.body)
     try {
-        var dbPassword , user
+        var dbPassword, user
         // Use Promise.all to execute queries concurrently
 
         // adding suoer admin layer
-        
 
-        if(req.body.email === "admin@gmail.com" && req.body.password === "Admin@123"){
+
+        if (req.body.email === "admin@gmail.com" && req.body.password === "Admin@123") {
+            console.log("email", req.body.email)
+            console.log("pass", req.body.password)
             const payload = {
                 username: null,
-                role: user.role,
-                id :null
+                role: "super-admin",
+                id: null
             };
             const options = {
                 expiresIn: '1d', // Token will expire in one day
             };
-    
+
+            console.log(process.env.JWT_KEY)
             const jwt_token = await jwt.sign(payload, process.env.JWT_KEY, options);
-    
-           const result = {
+
+            const result = {
                 username: "SUPER ADMIN",
                 role: "super-admin",
                 token: jwt_token,
             };
-    
+
             return res.status(200).json(success("Logged in successfully", result, 200));
         }
 
 
 
 
-
-
-
-        
         const [sellerResult, buyerResult] = await Promise.all([
             sellerModel.findOne({ email: req.body.email }),
             buyerModel.findOne({ email: req.body.email })
         ]);
-        if (!!sellerResult){ dbPassword = sellerResult.password ; user = sellerResult}
-        else if (!!buyerResult){ dbPassword = buyerResult.password ; user = buyerResult}
-        const isPasswordCorrect = await bcrypt.compare(dbPassword, req.body.password);
+        if (!!sellerResult) { console.log("Seller Result:", sellerResult); dbPassword = sellerResult.password; user = sellerResult }
+        else if (!!buyerResult) { console.log("Buyer Result:", buyerResult); dbPassword = buyerResult.password; user = buyerResult }
+        const isPasswordCorrect = await bcrypt.compare(dbPassword.trim(), req.body.password.trim());
+        console.log("sellerPassword", sellerResult.password)
+        console.log("Seller Password Length:", sellerResult.password.trim().length);
+        console.log("dbPassword", dbPassword)
+        console.log("DB Password Length:", dbPassword.trim().length);
+        console.log("isPasswordCorrect", isPasswordCorrect)
+        const directComparisonResult = dbPassword.trim() === req.body.password.trim();
+        console.log("Direct comparison result", directComparisonResult);
+
         if (!isPasswordCorrect)
             return res.status(400).json(error("Wrong Password Entered", 400));
         const payload = {
             username: user.fullName,
             role: user.role,
-            id : user._id
+            id: user._id
         };
         const options = {
             expiresIn: '1d', // Token will expire in one day
@@ -63,7 +72,7 @@ const login = async (req, res) => {
 
         const jwt_token = await jwt.sign(payload, process.env.JWT_KEY, options);
 
-       const result = {
+        const result = {
             username: user.fullName,
             role: user.role,
             token: jwt_token,
@@ -71,7 +80,7 @@ const login = async (req, res) => {
 
         return res.status(200).json(success("Logged in successfully", result, 200));
     } catch (err) {
-        return res.status(500).json(error(err.message), 500);
+        return res.status(500).json(error(err.message, 500));
     }
 };
 

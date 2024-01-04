@@ -3,17 +3,18 @@ const { uploadImg } = require("../utils/cloudinary");
 const { validationResult } = require("express-validator");
 const bcrypt = require('bcrypt');
 const sendMail = require("../helper/sendMail");
+const generatePassword = require("../helper/generatePassword");
 
 
 
 
 
-
-const sellerRegistration = async (req, res) =>{
+const sellerRegistration = async (req, res) => {
     try {
         const salt = await bcrypt.genSalt(10);
         let password = generatePassword(req.body.fullName)
-        const securedPassword = await bcrypt.hash( password ,  salt);
+        console.log("Generated Password:", password);
+        const securedPassword = await bcrypt.hash(password, 10);
         // Validate request body
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -30,7 +31,7 @@ const sellerRegistration = async (req, res) =>{
             }
         }
 
-        const newUser = new sellerModel({...req.body , isApproved : true , password : securedPassword});
+        const newUser = new sellerModel({ ...req.body, isApproved: true, password: securedPassword });
 
         // Upload files
         const uploadResults = {};
@@ -49,7 +50,7 @@ const sellerRegistration = async (req, res) =>{
         newUser.certificate_of_incorporate = uploadResults.certificate_of_incorporate;
         await newUser.save();
         const message = `Your account is registered successfully in  Real State Bharat Escrow as a Seller, Here are your credentials Email: ${req.body.email} and Password: ${password}`;
-        await sendMail(req.body.email , "Welcome Buyer" , message);
+        await sendMail(req.body.email, "Welcome Buyer", message);
         res.status(200).json({ success: true, message, result: newUser });
     } catch (err) {
         console.log(err);
