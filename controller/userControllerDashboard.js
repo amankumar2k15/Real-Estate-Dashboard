@@ -3,6 +3,8 @@ const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const sellerModel = require("../model/sellorModel")
 const buyerModel = require("../model/buyerModel")
+const sendMail = require("../helper/sendMail")
+const generateOtp = require("../helper/generateOtp")
 require('dotenv').config();
 
 
@@ -41,15 +43,10 @@ const login = async (req, res) => {
             return res.status(200).json(success("Logged in successfully", result, 200));
         }
 
-
-
-
         const [sellerResult, buyerResult] = await Promise.all([
             sellerModel.findOne({ email: req.body.email }),
             buyerModel.findOne({ email: req.body.email })
         ]);
-
-
 
         if (!!sellerResult) { console.log("Seller Result:", sellerResult); dbPassword = sellerResult?.password; user = sellerResult }
         else if (!!buyerResult) { console.log("Buyer Result:", buyerResult); dbPassword = buyerResult?.password; user = buyerResult }
@@ -87,6 +84,74 @@ const login = async (req, res) => {
 
 // un used 
 
+const generateOtpForPasswordReset = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(500).json(error(err.message, 500));
+        const otp = generateOtp(6);
+
+        const [sellerResult, buyerResult] = await Promise.all([
+            sellerModel.findOne({ email }),
+            buyerModel.findOne({ email })
+        ]);
+        if (!!sellerResult) {
+            await sendMail(email, "Bharat Escrow Forgot Password OTP", "OTP is " + otp);
+            await sellerModel.findOneAndUpdate({ email }, { otp: otp }, { new: true });
+            return res.status(200).json(
+                success("OTP Sent", sellerResult, 200)
+            )
+        }
+        else if (!!buyerResult) {
+            await sendMail(email, "Bharat Escrow Forgot Password OTP", "OTP is " + otp);
+            await buyerModel.findOneAndUpdate({ email }, { otp: otp }, { new: true });
+            return res.status(200).json(
+                success("OTP Sent", buyerResult, 200)
+            )
+        } else {
+            return res.status(200).json(
+                success("Contact developer ", [], 200)
+            )
+        }
+    } catch (err) {
+        return res.status(500).json(error(err.message, 500));
+    }
+};
+
+const resetPassword = async (req, res) => {
+    try {
+        const { newPassword, otp, email } = req.body;
+        const [sellerResult, buyerResult] = await Promise.all([
+            sellerModel.findOne({ email }),
+            buyerModel.findOne({ email })
+        ]);
+        if (!!sellerResult) {
+            if (sellerResult?.otp != otp) {
+                return res.status(400).json(error("Invalid OTP entered", 400));
+            }
+            const salt = await bcrypt.genSalt(10);
+            const securedPassword = await bcrypt.hash(newPassword, salt);
+            await sellerModel.findOneAndUpdate({ email }, { password: securedPassword }, { new: true });
+            return res
+                .status(200)
+                .json(success("Updated", "Seller password updated", 200));
+        }
+        else if (!!buyerResult) {
+            if (buyerResult?.otp != otp) {
+                return res.status(400).json(error("Invalid OTP entered", 400));
+            }
+            const salt = await bcrypt.genSalt(10);
+            const securedPassword = await bcrypt.hash(newPassword, salt);
+            await buyerModel.findOneAndUpdate({ email }, { password: securedPassword }, { new: true });
+            return res
+                .status(200)
+                .json(success("Updated", "Buyer password updated", 200));
+        }
+
+    } catch (err) {
+        return res.status(500).json(error(err.message, 500));
+    }
+};
+
 
 
 const register = async (req, res) => {
@@ -96,6 +161,9 @@ const register = async (req, res) => {
         return res.status(500).json(error(err.message, 500))
     }
 }
+
+
+
 const userKYCRegistration = async (req, res) => {
     try {
 
@@ -141,17 +209,17 @@ const WhoAmI = async (req, res) => {
 
         if (!!sellerResult) {
             return res.status(200).json(
-                success("Seller details fetched successfully", sellerResult , 200)
+                success("Seller details fetched successfully", sellerResult, 200)
             )
         }
         else if (!!buyerResult) {
             return res.status(200).json(
-                success("Buyer details fetched successfully", buyerResult , 200)
+                success("Buyer details fetched successfully", buyerResult, 200)
             )
-        }else{
+        } else {
             return res.status(200).json(
-                success("Super Admin details fetched successfully", {fullName : "Super-Admin" , role : "super-admin"} , 200)
-            ) 
+                success("Super Admin details fetched successfully", { fullName: "Super-Admin", role: "super-admin" }, 200)
+            )
         }
     } catch (err) {
         return res.status(500).json(error(err.message, 500))
@@ -166,5 +234,7 @@ module.exports = {
     userById,
     userKYCRegistration,
     WhoAmI,
-    login
+    login,
+    generateOtpForPasswordReset,
+    resetPassword
 };
