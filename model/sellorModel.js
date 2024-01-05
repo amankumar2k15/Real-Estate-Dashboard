@@ -25,10 +25,11 @@ const sellerSchema = mongoose.Schema({
     adhaar: { type: String, default: null },
     companyPan: { type: String, default: null },
     blankCheque: { type: String, default: null },
-    certificate_of_incorporate: { type: String, default: null }
+    certificate_of_incorporate: { type: String, default: null },
+    otp: { type: Number, default: null }
 })
 
-sellerSchema.index({ fullName: 'text'  , username : "text"});
+sellerSchema.index({ fullName: 'text', username: "text" });
 
 const sellerModel = mongoose.model("sellerModel", sellerSchema)
 

@@ -26,9 +26,10 @@ const buyerSchema = mongoose.Schema({
     pan: { type: String, default: null },
     blankCheque: { type: String, default: null },
     source_of_fund: { type: String, default: null },
+    otp: { type: Number, default: null }
 })
 
-buyerSchema.index({ fullName: 'text' , username : "text" });
+buyerSchema.index({ fullName: 'text', username: "text" });
 
 const buyerModel = mongoose.model("buyerModel", buyerSchema)
 

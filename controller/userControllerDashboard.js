@@ -87,7 +87,7 @@ const login = async (req, res) => {
 const generateOtpForPasswordReset = async (req, res) => {
     try {
         const { email } = req.body;
-        if (!email) return res.status(500).json(error(err.message, 500));
+        if (!email) return res.status(422).json(error("Email is missing", 422));
         const otp = generateOtp(6);
 
         const [sellerResult, buyerResult] = await Promise.all([
@@ -108,8 +108,8 @@ const generateOtpForPasswordReset = async (req, res) => {
                 success("OTP Sent", buyerResult, 200)
             )
         } else {
-            return res.status(200).json(
-                success("Contact developer ", [], 200)
+            return res.status(500).json(
+                error("Email not found ", 500)
             )
         }
     } catch (err) {
