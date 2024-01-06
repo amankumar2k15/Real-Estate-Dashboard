@@ -13,6 +13,20 @@ require("./helper/auth")
 // Initialize Express app
 const app = express();
 
+// server setup 
+const server = app.listen(PORT, function () {
+    console.log(`Server is running on port ${PORT}`)
+})
+//unexpected error handling
+process.on("uncaughtException", (err) => {
+    console.log(`Logged Error from index js: ${err.stack}`);
+    server.close(() => process.exit(1));
+})
+// Connecting to Database 
+mongoose.connect(MONGODB_URL).then(() => {
+    console.log("Connected to Database")
+}).catch((err) => console.log(err))
+
 app.use(
     cookieSession({
         name: "session",
@@ -46,12 +60,6 @@ app.use('/api/v1/', require('./routes'))
 app.get("/", (req, res) => {
     res.send("Server is up and running on port " + PORT)
 })
-// ------------------------CONTINUE WITH GOOGLE ends------------------------
 
-// Connecting to Database 
-mongoose.connect(MONGODB_URL).then(() => {
-    app.listen(PORT, function () {
-        console.log(`Server is running on port ${PORT}`)
-        console.log("Connected to Database")
-    })
-}).catch((err) => console.log(err))
+
+

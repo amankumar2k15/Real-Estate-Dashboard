@@ -20,7 +20,7 @@ router.post("/create-site",  authenticate ,  upload.single("site_image"), valida
 // ]), validate(sellerRegister), sellerRegistration)
 
 
-router.get("/list-site", listSite)
+router.get("/list-site", authenticate  , checkSellerAdmin ,  listSite)
 
 
 

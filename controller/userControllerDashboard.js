@@ -5,20 +5,15 @@ const sellerModel = require("../model/sellorModel")
 const buyerModel = require("../model/buyerModel")
 const sendMail = require("../helper/sendMail")
 const generateOtp = require("../helper/generateOtp")
+const siteModel = require("../model/siteModel")
 require('dotenv').config();
 
 
 // useful
 
 const login = async (req, res) => {
-    console.log("aman", req.body)
     try {
         var dbPassword, user
-        // Use Promise.all to execute queries concurrently
-
-        // adding suoer admin layer
-
-
         if (req.body.email === "admin@gmail.com" && req.body.password === "Admin@123") {
             console.log("email", req.body.email)
             console.log("pass", req.body.password)
@@ -208,6 +203,7 @@ const WhoAmI = async (req, res) => {
         ]);
 
         if (!!sellerResult) {
+
             return res.status(200).json(
                 success("Seller details fetched successfully", sellerResult, 200)
             )
@@ -217,11 +213,65 @@ const WhoAmI = async (req, res) => {
                 success("Buyer details fetched successfully", buyerResult, 200)
             )
         } else {
+            const body = { fullName: "Super-Admin", role: "super-admin" }
             return res.status(200).json(
-                success("Super Admin details fetched successfully", { fullName: "Super-Admin", role: "super-admin" }, 200)
+                success("Super Admin details fetched successfully", body, 200)
             )
         }
     } catch (err) {
+        return res.status(500).json(error(err.message, 500))
+    }
+}
+
+const getDashbardData = async (req, res) => {
+    try {
+        try {
+            console.log(req.user.role, "req.body.role");
+            const [sellerResult, buyerResult] = await Promise.all([
+                sellerModel.findById(req.user.id),
+                buyerModel.findById(req.user.id)
+            ]);
+            if (req.user.role === "seller" && !!sellerResult) {
+                const buyerInsideSeller = await buyerModel.find({ sellerId: req.user.id })
+                const siteInsideSeller = await siteModel.find({ sellerId: req.user.id })
+                console.log(siteInsideSeller);
+                const data = {
+                    buyerCount: buyerInsideSeller?.length,
+                    siteCount: siteInsideSeller?.length
+                }
+                return res.status(200).json(
+                    success("Seller dashboard fetched successfully", data, 200)
+                )
+            }
+            else if (req.user.role === "buyer" && !!buyerResult) {
+                // const buyerInsideSeller = await buyerModel.find({sellerId : req.user.id})
+                // const siteInsideSeller = await siteModel.find({sellerId : req.user.id})
+                // const data ={
+                //     buyerCount :buyerInsideSeller?.length,
+                //     siteCount : siteInsideSeller?.length
+                // }
+                return res.status(200).json(
+                    success("Buyer dashboard fetched successfully", buyerResult, 200)
+                )
+            } else {
+                const buyer = await buyerModel.find()
+                const seller = await sellerModel.find()
+                const site = await siteModel.find()
+                const data = {
+                    buyerCount: buyer?.length,
+                    sellerCount: seller?.length,
+                    siteCount: site?.length
+                }
+                return res.status(200).json(
+                    success("Super Admin dashboard fetched successfully", data, 200)
+                )
+            }
+        } catch (err) {
+            return res.status(500).json(error(err.message, 500))
+        }
+
+    }
+    catch (err) {
         return res.status(500).json(error(err.message, 500))
     }
 }
@@ -236,5 +286,6 @@ module.exports = {
     WhoAmI,
     login,
     generateOtpForPasswordReset,
-    resetPassword
+    resetPassword,
+    getDashbardData
 };
