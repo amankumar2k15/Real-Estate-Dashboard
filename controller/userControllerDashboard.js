@@ -13,10 +13,8 @@ require('dotenv').config();
 
 const login = async (req, res) => {
     try {
-        var dbPassword, user
+        var dbPassword,user
         if (req.body.email === "admin@gmail.com" && req.body.password === "Admin@123") {
-            console.log("email", req.body.email)
-            console.log("pass", req.body.password)
             const payload = {
                 username: null,
                 role: "super-admin",
@@ -25,10 +23,7 @@ const login = async (req, res) => {
             const options = {
                 expiresIn: '1d', // Token will expire in one day
             };
-
-            console.log(process.env.JWT_KEY)
             const jwt_token = await jwt.sign(payload, process.env.JWT_KEY, options);
-
             const result = {
                 username: "SUPER ADMIN",
                 role: "super-admin",
@@ -58,7 +53,7 @@ const login = async (req, res) => {
             id: user._id
         };
         const options = {
-            expiresIn: '1d', // Token will expire in one day
+            expiresIn: 60*1, // Token will expire in one day
         };
 
         const jwt_token = await jwt.sign(payload, process.env.JWT_KEY, options);
