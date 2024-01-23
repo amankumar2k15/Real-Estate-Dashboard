@@ -12,7 +12,7 @@ const authenticate = (req, res, next) => {
       .status(401)
       .json(error("Please authenticate using a token", 401));
   }
-  
+
   try {
     let token = userToken.split(" ");
     const JWT_TOKEN = token[1];

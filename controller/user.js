@@ -19,39 +19,35 @@ require('dotenv').config();
 const register = async (req, res) => {
     try {
         const { username, role, email } = req.body;
+
         const salt = await bcrypt.genSalt(10);
         let password = generatePassword(req.body.username)
         console.log("Generated Password:", password);
         const securedPassword = await bcrypt.hash(password, salt);
         // Validate request body
-        // const errors = validationResult(req);
-        // if (!errors.isEmpty()) {
-        //     return res.status(400).json({ success: false, errors: errors.array() });
-        // }
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ success: false, errors: errors.array() });
+        }
 
         // conditions checking which role is being created 
         if (role === "seller") {
             if (req.user.role !== "admin") return res.status(403).json({ message: 'Only admins can create sellers.' });
             // seller regster 
 
-
             const newSeller = new userModel({
                 ...req.body, username, password: securedPassword, role
             });
 
-
             // Validate file arrays for seller documents 
-            const requiredFiles = ["adhaar", "companyPan", "blankCheque", "certificate_of_incorporate"];
+            const requiredFiles = ["adhaar", "companyPan", "blankCheque", "certificate_of_incorporate", "profile"];
             for (const file of requiredFiles) {
                 if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
                     return res.status(400).json({ success: false, message: `Please upload ${file} file` });
                 }
             }
 
-         
-
             // Upload files
-
             const uploadResults = {};
             for (const file of requiredFiles) {
                 const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
@@ -62,6 +58,7 @@ const register = async (req, res) => {
             }
             // Update user properties with Cloudinary URLs
             newSeller.adhaar = uploadResults?.adhaar;
+            newSeller.profile = uploadResults?.profile;
             newSeller.companyPan = uploadResults?.companyPan;
             newSeller.blankCheque = uploadResults?.blankCheque;
             newSeller.certificate_of_incorporate = uploadResults?.certificate_of_incorporate;
@@ -70,7 +67,7 @@ const register = async (req, res) => {
             await adminSellersLinkModel({ adminID: req.user.id, sellerID: newSeller._id }).save()
             await newSeller.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
-            await sendMail(email, "Welcome Seller",message);
+            await sendMail(email, "Welcome Seller", message);
             return res.status(201).json({ message: 'seller created successfully', data: newSeller });
 
         } else if (role === "buyer") {
@@ -81,7 +78,7 @@ const register = async (req, res) => {
             });
 
             // Validate file arrays
-            const requiredFiles = ["adhaar", "pan", "blankCheque", "source_of_fund"];
+            const requiredFiles = ["adhaar", "individualPan", "blankCheque", "source_of_fund", "profile"];
             for (const file of requiredFiles) {
                 if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
                     return res.status(400).json({ success: false, message: `Please upload ${file} file` });
@@ -99,7 +96,8 @@ const register = async (req, res) => {
             }
             // Update user properties with Cloudinary URLs
             newBuyer.adhaar = uploadResults.adhaar;
-            newBuyer.pan = uploadResults.pan;
+            newBuyer.profile = uploadResults.profile;
+            newBuyer.individualPan = uploadResults.individualPan;
             newBuyer.blankCheque = uploadResults.blankCheque;
             newBuyer.source_of_fund = uploadResults.source_of_fund;
             await sellerBuyersLinkModel({ sellerID: req.user.id, buyerID: newBuyer._id })
@@ -111,11 +109,11 @@ const register = async (req, res) => {
         } else if (role === "admin") {
             //  register admin
             const newAdmin = new userModel({
-                username, password: securedPassword, role , email
+                username, password: securedPassword, role, email
             });
             await newAdmin.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
-            await sendMail(email, "Welcome Admin",message);
+            await sendMail(email, "Welcome Admin", message);
             return res.status(201).json({ message: 'admin created successfully', data: newAdmin });
         } else {
 
@@ -128,35 +126,32 @@ const register = async (req, res) => {
 
 
 
-
-
-
 const login = async (req, res) => {
     try {
         try {
             const { username, password } = req.body;
-          const user  = await userModel.findOne( { username })
+            const user = await userModel.findOne({ username })
             const isPasswordCorrect = await bcrypt.compare(password, user.password);
             if (!isPasswordCorrect)
-              return res.status(400).json(error("Wrong Password Entered", 400));
-        
-              const payload = {
+                return res.status(400).json(error("Wrong Password Entered", 400));
+
+            const payload = {
                 username: user.username,
                 role: user.role,
                 id: user._id,
-                email : user.email
+                email: user.email
             };
             const jwt_token = await jwt.sign(payload, process.env.JWT_KEY);
-        
+
             let body = {
                 username: user.username,
                 role: user.role,
-              token: jwt_token,
+                token: jwt_token,
             };
             return res.status(200).json(success("Logged in successfully", body, 200));
-          } catch (err) {
+        } catch (err) {
             return res.status(500).json(error(err.message), 500);
-          }
+        }
 
     } catch (err) {
         return res.status(500).json(error(err.message, 500));

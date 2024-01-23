@@ -2,8 +2,8 @@ const { error } = require("../helper/baseResponse");
 
 const checkSuperAdmin = async (req, res, next) => {
   try {
-    if (req.user.role != "super-admin") {
-      return res.status(403).json(error("You are not Super ADMIN", 403));
+    if (req.user.role != "admin") {
+      return res.status(403).json(error("You are not ADMIN", 403));
     } else {
       return next()
     }

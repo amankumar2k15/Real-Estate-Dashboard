@@ -11,7 +11,7 @@ const registerValidator = [
                 throw new Error("User with this username already exists!");
             }
         }),
-        body("email")
+    body("email")
         .notEmpty().withMessage("Please enter email")
         .isEmail().withMessage("Please enter a valid email")
         .custom(async (value) => {
@@ -26,7 +26,6 @@ const registerValidator = [
         .withMessage("Please enter role")
         .isString()
         .withMessage("Please enter a valid role")
-  
 ];
 
 
@@ -40,12 +39,12 @@ const loginValidator = [
                 throw new Error("User with this username does't exist !!");
             }
         }),
-        body("password")
+    body("password")
         .notEmpty()
         .withMessage("Please enter password")
         .isString()
         .withMessage("Please enter a valid  password")
-  
+
 ];
 
 

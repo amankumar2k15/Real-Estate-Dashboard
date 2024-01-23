@@ -1,7 +1,5 @@
 const mongoose = require("mongoose")
 
-
-
 const userSchema = mongoose.Schema({
     username: { type: String, required: true },
     password: { type: String, required: true },
@@ -13,15 +11,15 @@ const userSchema = mongoose.Schema({
     address: { type: String, default: null },
     location: { type: String, default: null },
     role: {
-    type: String,
-    enum: ['seller', 'buyer', 'admin', "bank"], // Use an enumeration to restrict the values
+        type: String,
+        enum: ['seller', 'buyer', 'admin', "bank"], // Use an enumeration to restrict the values
     },
     isApproved: {
         type: Boolean,
         default: true
     },
-    sellerId : { type: String, default: null },
-    buyerId : { type: String, default: null },
+    sellerId: { type: String, default: null },
+    buyerId: { type: String, default: null },
     state: { type: String, default: null },
     city: { type: String, default: null },
     pincode: { type: String, default: null },
