@@ -172,16 +172,11 @@ const welcome =(name , message)=>{
                             <i class="fa-brands fa-2xl fa-square-facebook" style="margin-left: 10px;"></i>
                             <i class="fa-brands fa-2xl fa-square-x-twitter" style="margin-left: 10px;"></i>
                         </div>
-
                         <div class=" bottomText " style="margin-top: 5px;">Copyright © 2024 || Bharat Escrow</div>
                         <div class="bottomText">A better company begins with a personalized employee experience.</div>
                     </div>
-
-                
                 </div>
             </div>
-
-
         </div>
     </section>
 

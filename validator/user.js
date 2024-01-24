@@ -32,7 +32,7 @@ const registerValidator = [
 const loginValidator = [
     body("username")
         .notEmpty().withMessage("Please enter Username")
-        .isString().withMessage("Please enter a valid Username")
+        .isString().withMessage("Please enter a valid username")
         .custom(async (value) => {
             const existingUser = await userModel.findOne({ username: value });
             if (!existingUser) {

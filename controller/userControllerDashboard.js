@@ -64,7 +64,6 @@ const login = async (req, res) => {
             role: user.role,
             token: jwt_token,
         };
-
         return res.status(200).json(success("Logged in successfully", result, 200));
     } catch (err) {
         return res.status(500).json(error(err.message, 500));

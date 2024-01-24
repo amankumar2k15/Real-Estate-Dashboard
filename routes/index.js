@@ -1,7 +1,7 @@
 const express = require("express")
 const router = express.Router()
 
-const userRoute = require('./user')
+const userRoute = require('./userNew')
 const authRoute = require('./auth')
 const sellerRoute = require('./seller')
 const buyerRoute = require('./buyer')

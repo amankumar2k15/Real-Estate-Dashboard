@@ -18,8 +18,11 @@ require('dotenv').config();
 
 const register = async (req, res) => {
     try {
+        console.log("Here we are extracting body in register ap for users====>",req.body);
+        // return res.send(res.body)
         const { username, role, email } = req.body;
 
+        if(!role) return res.status(403).json({ message: 'role is required' });
         const salt = await bcrypt.genSalt(10);
         let password = generatePassword(req.body.username)
         console.log("Generated Password:", password);
@@ -167,7 +170,6 @@ const generateOtpForPasswordReset = async (req, res) => {
         const { email } = req.body;
         if (!email) return res.status(422).json(error("Email is missing", 422));
         const otp = generateOtp(6);
-
         const [sellerResult, buyerResult] = await Promise.all([
             sellerModel.findOne({ email }),
             buyerModel.findOne({ email })
@@ -232,13 +234,133 @@ const resetPassword = async (req, res) => {
 
 
 
+const userKYCRegistration = async (req, res) => {
+    try {
 
+    } catch (err) {
+        return res.status(500).json(error(err.message, 500))
+    }
+}
+
+const listUsers = async (req, res) => {
+    try {
+
+    } catch (err) {
+        return res.status(500).json(error(err.message, 500))
+    }
+}
+
+const userById = async (req, res) => {
+    try {
+        // const { isApproved, id, search } = req.query;
+        // if (search) {
+        //     const users = await UserModelDashboard.find({ username: { $regex: search, $options: 'i' } }, { username: 1 });
+        //     return res.status(201).json(
+        //         success("Search result", users, 201)
+        //     )
+        // } else if (!isApproved) {
+        //     const user = await UserModelDashboard.findById(id)
+        //     return res.status(201).json(
+        //         success("User fetched Successfully", user, 201)
+        //     )
+        // }
+
+    } catch (err) {
+        return res.status(500).json(error(err.message, 500))
+    }
+}
+
+const WhoAmI = async (req, res) => {
+    try {
+        const [sellerResult, buyerResult] = await Promise.all([
+            sellerModel.findById(req.user.id),
+            buyerModel.findById(req.user.id)
+        ]);
+
+        if (!!sellerResult) {
+
+            return res.status(200).json(
+                success("Seller details fetched successfully", sellerResult, 200)
+            )
+        }
+        else if (!!buyerResult) {
+            return res.status(200).json(
+                success("Buyer details fetched successfully", buyerResult, 200)
+            )
+        } else {
+            const body = { fullName: "Super-Admin", role: "super-admin" }
+            return res.status(200).json(
+                success("Super Admin details fetched successfully", body, 200)
+            )
+        }
+    } catch (err) {
+        return res.status(500).json(error(err.message, 500))
+    }
+}
+
+const getDashbardData = async (req, res) => {
+    try {
+        try {
+            console.log(req.user.role, "req.body.role");
+            const [sellerResult, buyerResult] = await Promise.all([
+                sellerModel.findById(req.user.id),
+                buyerModel.findById(req.user.id)
+            ]);
+            if (req.user.role === "seller" && !!sellerResult) {
+                const buyerInsideSeller = await buyerModel.find({ sellerId: req.user.id })
+                const siteInsideSeller = await siteModel.find({ sellerId: req.user.id })
+                console.log(siteInsideSeller);
+                const data = {
+                    buyerCount: buyerInsideSeller?.length,
+                    siteCount: siteInsideSeller?.length
+                }
+                return res.status(200).json(
+                    success("Seller dashboard fetched successfully", data, 200)
+                )
+            }
+            else if (req.user.role === "buyer" && !!buyerResult) {
+                // const buyerInsideSeller = await buyerModel.find({sellerId : req.user.id})
+                // const siteInsideSeller = await siteModel.find({sellerId : req.user.id})
+                // const data ={
+                //     buyerCount :buyerInsideSeller?.length,
+                //     siteCount : siteInsideSeller?.length
+                // }
+                return res.status(200).json(
+                    success("Buyer dashboard fetched successfully", buyerResult, 200)
+                )
+            } else {
+                const buyer = await buyerModel.find()
+                const seller = await sellerModel.find()
+                const site = await siteModel.find()
+                const data = {
+                    buyerCount: buyer?.length,
+                    sellerCount: seller?.length,
+                    siteCount: site?.length
+                }
+                return res.status(200).json(
+                    success("Super Admin dashboard fetched successfully", data, 200)
+                )
+            }
+        } catch (err) {
+            return res.status(500).json(error(err.message, 500))
+        }
+
+    }
+    catch (err) {
+        return res.status(500).json(error(err.message, 500))
+    }
+}
 
 
 
 module.exports = {
     register,
+    listUsers,
+    userById,
+    userKYCRegistration,
+    WhoAmI,
     login,
     generateOtpForPasswordReset,
     resetPassword,
+    getDashbardData
 };
