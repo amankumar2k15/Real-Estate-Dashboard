@@ -15,6 +15,7 @@ const login = async (req, res) => {
     try {
         var dbPassword,user
         if (req.body.email === "admin@gmail.com" && req.body.password === "Admin@123") {
+            console.log("reaching here =============>");
             const payload = {
                 username: null,
                 role: "super-admin",

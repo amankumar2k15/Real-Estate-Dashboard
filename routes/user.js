@@ -5,11 +5,14 @@ const router = express.Router()
 const authenticate = require('../middleware/userRoleAuth');
 const { validate } = require('../middleware/validate');
 const upload = require('../middleware/multer');
-const { register, login, generateOtpForPasswordReset, resetPassword } = require("../controller/user");
+
+const { register, login, generateOtpForPasswordReset, resetPassword , listUsers , userById , WhoAmI , getDashbardData } = require("../controller/userControllerDashboard");
+// const { register, login, generateOtpForPasswordReset, resetPassword } = require("../controller/user");
+const checkSuperAdmin = require('../middleware/superAdmin')
 const { resetPasswordUser, registerValidator, loginValidator } = require('../validator/user');
 
 router.post("/create-user", authenticate, async (req, res, next) => {
-    console.log("amasssn", req.body.fields)
+    console.log("shashank", req.body)
     const role = req.body.role || (req.body.fields && req.body.fields.role);
 
     console.log("Role === >", role);
@@ -31,26 +34,24 @@ router.post("/create-user", authenticate, async (req, res, next) => {
             { name: 'source_of_fund', maxCount: 1 },
             { name: 'profile', maxCount: 1 },
         ];
-    } else {
-        return res.status(403).json({ message: 'Invalid role' });
-    }
+    } 
 
     // Add the allowed fields to the request object for use in the register function
     req.allowedFields = allowedFields;
 
     // Call the next middleware in the chain
     next();
-}, upload.fields((req) => req.allowedFields), register);
+}, upload?.fields((req) => req.allowedFields), register);
 
 router.post("/login", validate(loginValidator), login);
 router.post("/generate-otp", generateOtpForPasswordReset);
 router.post("/reset-password", validate(resetPasswordUser), resetPassword);
 
-// router.get("/list-users", authenticate, checkSuperAdmin, listUsers)
-// router.get("/", authenticate, checkSuperAdmin, userById)
-// router.get("/who-am-i", authenticate, WhoAmI)
-// router.get("/dashboard", authenticate, getDashbardData)
-// router.patch("/:id",  authenticate ,   checkSuperAdmin , userById)
+router.get("/list-users", authenticate, checkSuperAdmin, listUsers)
+router.get("/", authenticate, checkSuperAdmin, userById)
+router.get("/who-am-i", authenticate, WhoAmI)
+router.get("/dashboard", authenticate, getDashbardData)
+router.patch("/:id",  authenticate ,   checkSuperAdmin , userById)
 
 
 
