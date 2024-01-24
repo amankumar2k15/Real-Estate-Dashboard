@@ -43,7 +43,9 @@ router.post("/create-user", authenticate, async (req, res, next) => {
     next();
 }, upload?.fields((req) => req.allowedFields), register);
 
-router.post("/login", validate(loginValidator), login);
+// router.post("/login", validate(loginValidator), login);
+router.post("/login", login);
+
 router.post("/generate-otp", generateOtpForPasswordReset);
 router.post("/reset-password", validate(resetPasswordUser), resetPassword);
 
