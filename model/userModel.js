@@ -1,6 +1,7 @@
 const mongoose = require("mongoose")
 
 const userSchema = mongoose.Schema({
+    companyName: { type: String, default: null },
     username: { type: String, required: true },
     password: { type: String, required: true },
     profile: { type: String, default: null },
@@ -12,7 +13,7 @@ const userSchema = mongoose.Schema({
     location: { type: String, default: null },
     role: {
         type: String,
-        enum: ['seller', 'buyer', 'admin', "bank"], // Use an enumeration to restrict the values
+        enum: ['seller', 'buyer', 'admin', "trustee"], // Use an enumeration to restrict the values
     },
     isApproved: {
         type: Boolean,
@@ -29,6 +30,7 @@ const userSchema = mongoose.Schema({
     blankCheque: { type: String, default: null },
     certificate_of_incorporate: { type: String, default: null },
     source_of_fund: { type: String, default: null },
+    bankName: { type: String, default: null },
     otp: { type: Number, default: null },
 })
 

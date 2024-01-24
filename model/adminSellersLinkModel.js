@@ -1,9 +1,9 @@
 const mongoose = require("mongoose")
 
 const adminSellers = new mongoose.Schema({
-   
-    adminID: { type: String,required : true   },
-    sellerID: { type: String, required : true }
+
+    adminID: { type: String, required: true },
+    sellerID: { type: mongoose.Types.ObjectId, required: true }
 
 }, { timestamps: true });
 

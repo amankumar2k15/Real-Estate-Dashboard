@@ -12,6 +12,7 @@ const sellerBuyersLinkModel = require("../model/sellerBuyersLinkModel")
 const generatePassword = require("../helper/generatePassword")
 const { validationResult } = require("express-validator")
 const { uploadImg } = require("../utils/cloudinary")
+const adminTrusteeLinkModel = require("../model/adminTrusteeLinkModel")
 require('dotenv').config();
 
 
@@ -109,6 +110,16 @@ const register = async (req, res) => {
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Buyer", message);
             return res.status(201).json({ message: 'buyer created successfully', data: newBuyer });
+
+        } else if (role === "trustee") {
+            const newTrustee = new userModel({
+                username, password: securedPassword, role, email
+            });
+            await adminTrusteeLinkModel({ adminID: req.user.id, trusteeID: newTrustee._id })
+            await newTrustee.save();
+            const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
+            await sendMail(email, "Welcome Trustee", message);
+            return res.status(201).json({ message: 'trustee created successfully', data: newTrustee });
 
         } else if (role === "admin") {
             //  register admin
@@ -272,28 +283,71 @@ const userById = async (req, res) => {
 }
 
 const WhoAmI = async (req, res) => {
+    console.log("reaching in WHO AM I StartPoint for role==> ", req.user.role)
+    console.log("reaching in WHO AM I StartPoint for id==> ", req.user.id)
+    // try {
+    //     const [sellerResult, buyerResult] = await Promise.all([
+    //         sellerModel.findById(req.user.id),
+    //         buyerModel.findById(req.user.id)
+    //     ]);
+
+    //     if (!!sellerResult) {
+
+    //         return res.status(200).json(
+    //             success("Seller details fetched successfully", sellerResult, 200)
+    //         )
+    //     }
+    //     else if (!!buyerResult) {
+    //         return res.status(200).json(
+    //             success("Buyer details fetched successfully", buyerResult, 200)
+    //         )
+    //     } else {
+    //         const body = { fullName: "Super-Admin", role: "super-admin" }
+    //         return res.status(200).json(
+    //             success("Super Admin details fetched successfully", body, 200)
+    //         )
+    //     }
     try {
-        const [sellerResult, buyerResult] = await Promise.all([
-            sellerModel.findById(req.user.id),
-            buyerModel.findById(req.user.id)
-        ]);
+        if (req.user.role === "admin") {
 
-        if (!!sellerResult) {
+            const sellersData = await adminSellersLinkModel.aggregate([
+                { $match: { adminID: req.user.id } },
+                {
+                    $lookup: {
+                        from: "usermodels",
+                        localField: "sellerID",
+                        foreignField: "_id",
+                        as: "data"
+                    }
+                },
+                {
+                    $project: {
+                        data: {
+                            username: 1,
+                            email: 1,
+                            _id: 1,
+                            phone: 1,
+                            companyName: 1,
+                            location: 1,
+                            state: 1,
+                            city: 1,
+                            approved: 1,
+                        }
+                    }
+                },
+            ]);
 
-            return res.status(200).json(
-                success("Seller details fetched successfully", sellerResult, 200)
-            )
+            const fetchUserData = await userModel.findOne({ _id: req.user.id })
+
+            let body = {
+                sellers: sellersData,
+                trustee: [],
+                personalInfo: fetchUserData,
+                totalSellerCount: sellersData.length != 0 ? sellersData.length : 0
+            }
+            return res.status(200).json({ success: true, result: body })
         }
-        else if (!!buyerResult) {
-            return res.status(200).json(
-                success("Buyer details fetched successfully", buyerResult, 200)
-            )
-        } else {
-            const body = { fullName: "Super-Admin", role: "super-admin" }
-            return res.status(200).json(
-                success("Super Admin details fetched successfully", body, 200)
-            )
-        }
+
     } catch (err) {
         return res.status(500).json(error(err.message, 500))
     }
@@ -351,7 +405,6 @@ const getDashbardData = async (req, res) => {
         return res.status(500).json(error(err.message, 500))
     }
 }
-
 
 
 module.exports = {
