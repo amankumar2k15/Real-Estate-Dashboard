@@ -11,6 +11,7 @@ const adminSellersLinkModel = require("../model/adminSellersLinkModel")
 const sellerBuyersLinkModel = require("../model/sellerBuyersLinkModel")
 const generatePassword = require("../helper/generatePassword")
 const { validationResult } = require("express-validator")
+const { uploadImg } = require("../utils/cloudinary")
 require('dotenv').config();
 
 
@@ -18,11 +19,11 @@ require('dotenv').config();
 
 const register = async (req, res) => {
     try {
-        console.log("Here we are extracting body in register ap for users====>",req.body);
+        console.log("Here we are extracting body in register ap for users====>", req.body);
         // return res.send(res.body)
         const { username, role, email } = req.body;
 
-        if(!role) return res.status(403).json({ message: 'role is required' });
+        if (!role) return res.status(403).json({ message: 'role is required' });
         const salt = await bcrypt.genSalt(10);
         let password = generatePassword(req.body.username)
         console.log("Generated Password:", password);

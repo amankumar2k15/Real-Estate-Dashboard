@@ -20,7 +20,7 @@ router.post("/create-user", authenticate, upload.fields([
     { name: 'blankCheque', maxCount: 1 },
     { name: 'source_of_fund', maxCount: 1 },
     { name: 'profile', maxCount: 1 },
-]), register);
+]), validate(registerValidator), register);
 
 router.post("/login", validate(loginValidator), login);
 // router.post("/login", login);

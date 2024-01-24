@@ -9,7 +9,7 @@ const MONGODB_URL = process.env.DB_URL
 const passport = require("passport");
 const session = require("express-session");
 require("./helper/auth")
-const multer  = require('multer')
+// const multer = require('multer')
 
 // Initialize Express app
 const app = express();
@@ -27,10 +27,10 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 
 // Create a multer instance
-const upload = multer();
+// const upload = multer();
 
 // Use multer middleware to parse form-data
-app.use(upload.any());
+// app.use(upload.any());
 
 
 
