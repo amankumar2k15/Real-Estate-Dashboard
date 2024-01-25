@@ -281,7 +281,6 @@ const WhoAmI = async (req, res) => {
     //     }
     try {
         if (req.user.role === "admin") {
-
             const sellersData = await adminSellersLinkModel.aggregate([
                 { $match: { adminID: req.user.id } },
                 {
@@ -307,7 +306,11 @@ const WhoAmI = async (req, res) => {
                         }
                     }
                 },
-            ]);
+            ]).map((item)=>item.data);
+
+          
+          
+            
 
             const trusteeData = await adminTrusteeLinkModel.aggregate([
                 { $match: { adminID: req.user.id } },
