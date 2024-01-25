@@ -26,14 +26,6 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 //unexpected error handling
 
 
-// Create a multer instance
-// const upload = multer();
-
-// Use multer middleware to parse form-data
-// app.use(upload.any());
-
-
-
 // server setup 
 const server = app.listen(PORT, function () {
     console.log(`Server is running on port ${PORT}`)
@@ -57,9 +49,6 @@ mongoose.connect(MONGODB_URL).then(() => {
 
 
 app.use('/api/v1/', require('./routes'))
-
-// ------------------------CONTINUE WITH GOOGLE start------------------------
-
 
 //Routes
 app.get("/", (req, res) => {

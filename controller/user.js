@@ -310,7 +310,9 @@ const WhoAmI = async (req, res) => {
                         }
                     }
                 },
-            ]).map((item)=>item.data)
+            ])
+
+            const transformSeller = sellersData.map((item) => item.data).map(([seller]) => seller)
 
             const trusteeData = await adminTrusteeLinkModel.aggregate([
                 { $match: { adminID: req.user.id } },
@@ -339,15 +341,18 @@ const WhoAmI = async (req, res) => {
                 },
             ]);
 
+            const transformTrustee = trusteeData.map((item) => item.data).map(([trustee]) => trustee)
+
+
             const fetchUserData = await userModel.findOne({ _id: req.user.id })
 
             let body = {
                 personalInfo: fetchUserData,
-                sellers: sellersData,
+                sellers: transformSeller,
                 buyers: [],
-                trustee: trusteeData,
-                totalSellerCount: sellersData.length != 0 ? sellersData.length : 0,
-                totalTrusteeCount: trusteeData.length != 0 ? trusteeData.length : 0,
+                trustee: transformTrustee,
+                totalSellerCount: transformSeller.length != 0 ? transformSeller.length : 0,
+                totalTrusteeCount: transformTrustee.length != 0 ? transformTrustee.length : 0,
                 totalBuyersCount: 0
 
             }
