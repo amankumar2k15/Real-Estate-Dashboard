@@ -192,7 +192,10 @@ const generateOtpForPasswordReset = async (req, res) => {
         }
 
         await sendMail(email, "Bharat Escrow Forgot Password OTP", "OTP is " + otp);
-        await userModel.findOneAndUpdate({ email }, { otp: otp }, { new: true });
+        findUser.otp = otp;
+        await findUser.save()
+        // await userModel.findOneAndUpdate({ email }, { otp: otp }, { new: true });
+
         return res.status(200).json(success("OTP Sent", 200))
 
     } catch (err) {
