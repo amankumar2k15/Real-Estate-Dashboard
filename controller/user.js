@@ -17,7 +17,6 @@ require('dotenv').config();
 
 
 // useful
-
 const register = async (req, res) => {
     try {
         console.log("Here we are extracting body in register ap for users====>", req.body);
@@ -105,7 +104,7 @@ const register = async (req, res) => {
             newBuyer.individualPan = uploadResults.individualPan;
             newBuyer.blankCheque = uploadResults.blankCheque;
             newBuyer.source_of_fund = uploadResults.source_of_fund;
-            await sellerBuyersLinkModel({ sellerID: req.user.id, buyerID: newBuyer._id })
+            await sellerBuyersLinkModel({ sellerID: req.user.id, buyerID: newBuyer._id }).save()
             await newBuyer.save()
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Buyer", message);
@@ -115,7 +114,7 @@ const register = async (req, res) => {
             const newTrustee = new userModel({
                 username, password: securedPassword, role, email
             });
-            await adminTrusteeLinkModel({ adminID: req.user.id, trusteeID: newTrustee._id })
+            await adminTrusteeLinkModel({ adminID: req.user.id, trusteeID: newTrustee._id }).save()
             await newTrustee.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Trustee", message);
@@ -208,6 +207,8 @@ const generateOtpForPasswordReset = async (req, res) => {
         return res.status(500).json(error(err.message, 500));
     }
 };
+
+
 
 const resetPassword = async (req, res) => {
     try {
@@ -337,17 +338,86 @@ const WhoAmI = async (req, res) => {
                 },
             ]);
 
+            const trusteeData = await adminTrusteeLinkModel.aggregate([
+                { $match: { adminID: req.user.id } },
+                {
+                    $lookup: {
+                        from: "usermodels",
+                        localField: "trusteeID",
+                        foreignField: "_id",
+                        as: "data"
+                    }
+                },
+                {
+                    $project: {
+                        data: {
+                            username: 1,
+                            email: 1,
+                            _id: 1,
+                            phone: 1,
+                            companyName: 1,
+                            location: 1,
+                            state: 1,
+                            city: 1,
+                            approved: 1,
+                        }
+                    }
+                },
+            ]);
+
             const fetchUserData = await userModel.findOne({ _id: req.user.id })
 
             let body = {
-                sellers: sellersData,
-                trustee: [],
                 personalInfo: fetchUserData,
-                totalSellerCount: sellersData.length != 0 ? sellersData.length : 0
+                sellers: sellersData,
+                buyers:[],
+                trustee: trusteeData,
+                totalSellerCount: sellersData.length != 0 ? sellersData.length : 0,
+                totalTrusteeCount: trusteeData.length != 0 ? trusteeData.length : 0,
+                totalBuyersCount:  0
+                
+            }
+            return res.status(200).json({ success: true, result: body })
+        }else if(req.user.role ==="seller"){
+            const buyersData = await sellerBuyersLinkModel.aggregate([
+                { $match: { sellerID: req.user.id } },
+                {
+                    $lookup: {
+                        from: "usermodels",
+                        localField: "buyerID",
+                        foreignField: "_id",
+                        as: "data"
+                    }
+                },
+                {
+                    $project: {
+                        data: {
+                            username: 1,
+                            email: 1,
+                            _id: 1,
+                            phone: 1,
+                            companyName: 1,
+                            location: 1,
+                            state: 1,
+                            city: 1,
+                            approved: 1,
+                        }
+                    }
+                },
+            ]); 
+            const fetchUserData = await userModel.findOne({ _id: req.user.id })
+
+            let body = {
+                personalInfo: fetchUserData,
+                sellers: [],
+                buyers :buyersData, 
+                trustee: [],
+                totalSellerCount: 0,
+                totalTrusteeCount:  0,
+                totalBuyersCount: buyersData.length != 0 ? buyersData.length : 0
             }
             return res.status(200).json({ success: true, result: body })
         }
-
     } catch (err) {
         return res.status(500).json(error(err.message, 500))
     }
