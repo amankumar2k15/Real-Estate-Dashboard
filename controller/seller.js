@@ -19,11 +19,11 @@ delete seller
 
 const sellerById = async (req, res) => {
     const sellerId = req.params.id
-    if(!sellerId)   return res.status(200).json({ error: true, message: `seller id is missing` })
+    if (!sellerId) return res.status(200).json({ error: true, message: `seller id is missing` })
     try {
 
         const buyersData = await sellerBuyersLinkModel.aggregate([
-            { $match: { sellerID: req.user.id } },
+            { $match: { sellerID: sellerId } },
             {
                 $lookup: {
                     from: "usermodels",
@@ -34,7 +34,7 @@ const sellerById = async (req, res) => {
             },
             {
                 $project: {
-                    
+
                     data: {
                         username: 1,
                         email: 1,
@@ -48,18 +48,19 @@ const sellerById = async (req, res) => {
                     }
                 }
             },
-        ]); 
-        const fetchUserData = await userModel.findOne({ _id: req.user.id })
+        ]);
+
+        const fetchUserData = await userModel.findOne({ _id: sellerId })
 
         let body = {
             personalInfo: fetchUserData,
-            buyers :buyersData, 
-            totalBuyers : buyersData.length !=0? buyersData.length : 0,
-            activeBuyers : 0,
-            pendingBuyers : 0
+            buyers: buyersData,
+            totalBuyers: buyersData.length != 0 ? buyersData.length : 0,
+            activeBuyers: 0,
+            pendingBuyers: 0
         }
-        return res.status(200).json({ success: true, result : body, message: `Seller and associated buyers fetched successfully` })
-      } catch (err) {
+        return res.status(200).json({ success: true, result: body, message: `Seller and associated buyers fetched successfully` })
+    } catch (err) {
         console.log(err)
         res.status(500).json({ success: false, message: err.message })
     }
@@ -70,25 +71,25 @@ const sellerById = async (req, res) => {
 
 
 const deleteSeller = async (req, res) => {
-    const sellerId = req.params.id
-    if(!sellerId)   return res.status(200).json({ error: true, message: `seller id is missing` })
+    const sellerID = req.params.id
+    if (!sellerID) return res.status(200).json({ error: true, message: `seller id is missing` })
     try {
         // Find buyers associated with the seller
-        const buyerLinks = await sellerBuyersLinkModel.find({ sellerId });
-    
+        const buyerLinks = await sellerBuyersLinkModel.find({ sellerID });
+
         // Extract buyer ids
-        const buyerIds = buyerLinks.map((link) => link.buyerId);
-    
+        const buyerIds = buyerLinks.map((link) => link.buyerID);
+
         // Delete buyers
         await userModel.deleteMany({ _id: { $in: buyerIds } });
-    
+
         // Delete seller links
-        await sellerBuyersLinkModel.deleteMany({ sellerId });
-    
+        await sellerBuyersLinkModel.deleteMany({ sellerID });
+
         // Delete the seller
-        await userModel.deleteOne({ _id: sellerId });
+        await userModel.deleteOne({ _id: sellerID });
         return res.status(200).json({ success: true, message: `Seller and associated buyers deleted successfully` })
-      } catch (err) {
+    } catch (err) {
         console.log(err)
         res.status(500).json({ success: false, message: err.message })
     }

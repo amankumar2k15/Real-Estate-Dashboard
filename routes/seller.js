@@ -3,7 +3,7 @@ const bodyParser = require("body-parser")
 const router = express.Router()
 
 const { sellerRegistration, listSeller } = require("../controller/sellorController");
-const {   deleteSeller, sellerById } = require("../controller/seller");
+const {deleteSeller, sellerById } = require("../controller/seller");
 
 const checkSuperAdmin = require('../middleware/superAdmin');
 const authenticate = require('../middleware/userRoleAuth');

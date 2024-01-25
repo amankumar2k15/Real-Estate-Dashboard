@@ -1,11 +1,14 @@
 const { error, success } = require("../helper/baseResponse")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
+// unUsed======>
 const sellerModel = require("../model/sellorModel")
 const buyerModel = require("../model/buyerModel")
+const siteModel = require("../model/siteModel")
+// unUsed======>
+
 const sendMail = require("../helper/sendMail")
 const generateOtp = require("../helper/generateOtp")
-const siteModel = require("../model/siteModel")
 const userModel = require("../model/userModel")
 const adminSellersLinkModel = require("../model/adminSellersLinkModel")
 const sellerBuyersLinkModel = require("../model/sellerBuyersLinkModel")
@@ -179,73 +182,41 @@ const login = async (req, res) => {
 const generateOtpForPasswordReset = async (req, res) => {
     try {
         const { email } = req.body;
+        console.log("generateOtpForPasswordReset Email", req.body)
         if (!email) return res.status(422).json(error("Email is missing", 422));
         const otp = generateOtp(6);
-        const [sellerResult, buyerResult] = await Promise.all([
-            sellerModel.findOne({ email }),
-            buyerModel.findOne({ email })
-        ]);
-        if (!!sellerResult) {
-            await sendMail(email, "Bharat Escrow Forgot Password OTP", "OTP is " + otp);
-            await sellerModel.findOneAndUpdate({ email }, { otp: otp }, { new: true });
-            return res.status(200).json(
-                success("OTP Sent", sellerResult, 200)
-            )
+
+        const findUser = await userModel.findOne({ email })
+        if (!findUser) {
+            return res.status(422).json(error("Email does not exist", 422))
         }
-        else if (!!buyerResult) {
-            await sendMail(email, "Bharat Escrow Forgot Password OTP", "OTP is " + otp);
-            await buyerModel.findOneAndUpdate({ email }, { otp: otp }, { new: true });
-            return res.status(200).json(
-                success("OTP Sent", buyerResult, 200)
-            )
-        } else {
-            return res.status(500).json(
-                error("Email not found ", 500)
-            )
-        }
+
+        await sendMail(email, "Bharat Escrow Forgot Password OTP", "OTP is " + otp);
+        await userModel.findOneAndUpdate({ email }, { otp: otp }, { new: true });
+        return res.status(200).json(success("OTP Sent", 200))
+
     } catch (err) {
         return res.status(500).json(error(err.message, 500));
     }
 };
-
-
 
 const resetPassword = async (req, res) => {
     try {
         const { newPassword, otp, email } = req.body;
-        const [sellerResult, buyerResult] = await Promise.all([
-            sellerModel.findOne({ email }),
-            buyerModel.findOne({ email })
-        ]);
-        if (!!sellerResult) {
-            if (sellerResult?.otp != otp) {
-                return res.status(400).json(error("Invalid OTP entered", 400));
-            }
-            const salt = await bcrypt.genSalt(10);
-            const securedPassword = await bcrypt.hash(newPassword, salt);
-            await sellerModel.findOneAndUpdate({ email }, { password: securedPassword }, { new: true });
-            return res
-                .status(200)
-                .json(success("Updated", "Seller password updated", 200));
-        }
-        else if (!!buyerResult) {
-            if (buyerResult?.otp != otp) {
-                return res.status(400).json(error("Invalid OTP entered", 400));
-            }
-            const salt = await bcrypt.genSalt(10);
-            const securedPassword = await bcrypt.hash(newPassword, salt);
-            await buyerModel.findOneAndUpdate({ email }, { password: securedPassword }, { new: true });
-            return res
-                .status(200)
-                .json(success("Updated", "Buyer password updated", 200));
-        }
+
+        const findUser = await userModel.findOne({ email })
+        if (!findUser) return res.status(422).json(error("Email does not exist", 422))
+        else if (findUser.otp != otp) return res.status(400).json(error("Invalid OTP entered", 400));
+
+        const salt = await bcrypt.genSalt(10);
+        const securedPassword = await bcrypt.hash(newPassword, salt);
+        await userModel.findOneAndUpdate({ email }, { password: securedPassword }, { new: true });
+        return res.status(200).json(success("Updated", "User password updated", 200));
 
     } catch (err) {
         return res.status(500).json(error(err.message, 500));
     }
 };
-
-
 
 const userKYCRegistration = async (req, res) => {
     try {
@@ -370,15 +341,15 @@ const WhoAmI = async (req, res) => {
             let body = {
                 personalInfo: fetchUserData,
                 sellers: sellersData,
-                buyers:[],
+                buyers: [],
                 trustee: trusteeData,
                 totalSellerCount: sellersData.length != 0 ? sellersData.length : 0,
                 totalTrusteeCount: trusteeData.length != 0 ? trusteeData.length : 0,
-                totalBuyersCount:  0
-                
+                totalBuyersCount: 0
+
             }
             return res.status(200).json({ success: true, result: body })
-        }else if(req.user.role ==="seller"){
+        } else if (req.user.role === "seller") {
             const buyersData = await sellerBuyersLinkModel.aggregate([
                 { $match: { sellerID: req.user.id } },
                 {
@@ -396,7 +367,6 @@ const WhoAmI = async (req, res) => {
                             email: 1,
                             _id: 1,
                             phone: 1,
-                            companyName: 1,
                             location: 1,
                             state: 1,
                             city: 1,
@@ -404,16 +374,16 @@ const WhoAmI = async (req, res) => {
                         }
                     }
                 },
-            ]); 
+            ]);
             const fetchUserData = await userModel.findOne({ _id: req.user.id })
 
             let body = {
                 personalInfo: fetchUserData,
                 sellers: [],
-                buyers :buyersData, 
+                buyers: buyersData,
                 trustee: [],
                 totalSellerCount: 0,
-                totalTrusteeCount:  0,
+                totalTrusteeCount: 0,
                 totalBuyersCount: buyersData.length != 0 ? buyersData.length : 0
             }
             return res.status(200).json({ success: true, result: body })
