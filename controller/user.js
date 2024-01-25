@@ -310,7 +310,7 @@ const WhoAmI = async (req, res) => {
                         }
                     }
                 },
-            ]);
+            ]).map((item)=>item.data)
 
             const trusteeData = await adminTrusteeLinkModel.aggregate([
                 { $match: { adminID: req.user.id } },
