@@ -260,6 +260,7 @@ const userById = async (req, res) => {
 const WhoAmI = async (req, res) => {
     console.log("reaching in WHO AM I StartPoint for role==> ", req.user.role)
     console.log("reaching in WHO AM I StartPoint for id==> ", req.user.id)
+    
     // try {
     //     const [sellerResult, buyerResult] = await Promise.all([
     //         sellerModel.findById(req.user.id),

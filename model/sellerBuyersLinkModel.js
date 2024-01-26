@@ -9,6 +9,6 @@ const sellerBuyers = new mongoose.Schema({
 
 
 
-module.exports = sellerBuyersLinkModel = mongoose.model("sellerBuyersLinkModel", sellerBuyers)
-
+const sellerBuyersLinkModel = mongoose.model("sellerBuyersLinkModel", sellerBuyers)
+module.exports  = sellerBuyersLinkModel
 

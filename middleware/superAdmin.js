@@ -2,9 +2,12 @@ const { error } = require("../helper/baseResponse");
 
 const checkSuperAdmin = async (req, res, next) => {
   try {
+
+    
     if (req.user.role != "admin") {
       return res.status(403).json(error("You are not ADMIN", 403));
     } else {
+      console.log("inside admin else");
       return next()
     }
   } catch (err) {

@@ -2,8 +2,8 @@ const express = require('express');
 const bodyParser = require("body-parser")
 const router = express.Router()
 
-const { sellerRegistration, listSeller } = require("../controller/sellorController");
-const {deleteSeller, sellerById } = require("../controller/seller");
+const { sellerRegistration } = require("../controller/sellorController");
+const {deleteSeller, sellerById , listSeller} = require("../controller/seller");
 
 const checkSuperAdmin = require('../middleware/superAdmin');
 const authenticate = require('../middleware/userRoleAuth');
@@ -11,9 +11,9 @@ const { validate } = require("../middleware/validate")
 const { sellerRegister } = require("../validator/seller")
 const upload = require('../middleware/multer');
 
-router.get("/:id", authenticate, checkSuperAdmin, sellerById)
 router.get("/list-seller", authenticate, checkSuperAdmin, listSeller)
 
+router.get("/:id", authenticate, checkSuperAdmin, sellerById)
 router.delete("/delete-seller/:id", authenticate, checkSuperAdmin, deleteSeller)
 /*
 Super admin routes ===
