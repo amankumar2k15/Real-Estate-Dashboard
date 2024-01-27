@@ -41,37 +41,53 @@ const register = async (req, res) => {
         if (role === "seller") {
             if (req.user.role !== "admin") return res.status(403).json({ message: 'Only admins can create sellers.' });
             // seller regster 
+                  // Validate file arrays for seller documents 
+                  const requiredFiles = ["adhaar", "companyPan", "blankCheque", "certificate_of_incorporate", "profile"];
+                  for (const file of requiredFiles) {
+                      if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
+                          return res.status(400).json({ success: false, message: `Please upload ${file} file` });
+                      }
+                  }
+      
+                  // Upload files
+                  const uploadResults = {};
+                  for (const file of requiredFiles) {
+                      const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
+                      if (!uploadResult.success) {
+                          return res.status(500).json({ success: false, message: "Error uploading image" });
+                      }
+                      uploadResults[file] = uploadResult.url;
+                  }
 
             const newSeller = new userModel({
-                ...req.body, username, password: securedPassword, role
+                username, password: securedPassword, role , email,
+                basic_details : {
+                    profile: req.body.profile,
+                    firstName: req.body.firstName,
+                    lastName: req.body.lastName,
+                    phone: req.body.phone,
+                    address: req.body.address,
+                    location: req.body.location,
+                    state: req.body.state,
+                    city: req.body.city,
+                    pincode: req.body.pincode,
+                },
+                seller: {
+                    kyc_details: {
+                        companyName: req.body.companyName,
+                        certificate_of_incorporate: uploadResults?.certificate_of_incorporate,
+                        blankCheque: uploadResults?.blankCheque,
+                        adhaar: uploadResults?.adhaar,
+                        companyPan: uploadResults?.companyPan,
+                    },
+                    isApproved:true,
+                    associated_buyers : [],
+                    associated_sites : []
+                },
+                buyers : undefined,
+                trustee:undefined,
+                admin:undefined
             });
-
-            // Validate file arrays for seller documents 
-            const requiredFiles = ["adhaar", "companyPan", "blankCheque", "certificate_of_incorporate", "profile"];
-            for (const file of requiredFiles) {
-                if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
-                    return res.status(400).json({ success: false, message: `Please upload ${file} file` });
-                }
-            }
-
-            // Upload files
-            const uploadResults = {};
-            for (const file of requiredFiles) {
-                const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
-                if (!uploadResult.success) {
-                    return res.status(500).json({ success: false, message: "Error uploading image" });
-                }
-                uploadResults[file] = uploadResult.url;
-            }
-            // Update user properties with Cloudinary URLs
-            newSeller.adhaar = uploadResults?.adhaar;
-            newSeller.profile = uploadResults?.profile;
-            newSeller.companyPan = uploadResults?.companyPan;
-            newSeller.blankCheque = uploadResults?.blankCheque;
-            newSeller.certificate_of_incorporate = uploadResults?.certificate_of_incorporate;
-
-
-            await adminSellersLinkModel({ adminID: req.user.id, sellerID: newSeller._id }).save()
             await newSeller.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Seller", message);

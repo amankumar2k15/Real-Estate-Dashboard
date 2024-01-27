@@ -18,7 +18,7 @@ delete seller
 
 
 
-const listSeller = async (req, res) => {
+const listSeller = async (req, res) => { 
     try {
         console.log("reaching api page for paginate seller listing ", req.query);
         const { page, limit, type } = req.query;
@@ -134,7 +134,6 @@ const deleteSeller = async (req, res) => {
     try {
         // Find buyers associated with the seller
         const buyerLinks = await sellerBuyersLinkModel.find({ sellerID });
-
         // Extract buyer ids
         const buyerIds = buyerLinks.map((link) => link.buyerID);
 
