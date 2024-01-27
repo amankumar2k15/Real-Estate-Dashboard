@@ -8,6 +8,7 @@ const registerValidator = [
         .custom(async (value) => {
             const existingUser = await userModel.findOne({ username: value });
             if (existingUser) {
+                // return res.status(500).json(error(err.message, 500))
                 throw new Error("User with this username already exists!");
             }
         }),

@@ -16,19 +16,17 @@ delete seller
 */
 
 
+
+
 const listSeller = async (req, res) => {
-
     try {
-
-
-        console.log("reaching api page for paginate seller listing " , req.query );
-    const { page, limit, type } = req.query;
-    const query = { type: type }; // Construct your query based on type
-    const pageNumber = parseInt(page) || 1;
-    const pageSize = parseInt(limit) || 10;
-    const totalCount = await userModel.countDocuments({role : "seller"});
+        console.log("reaching api page for paginate seller listing ", req.query);
+        const { page, limit, type } = req.query;
+        // const query = { type: type }; // Construct your query based on type
+        const pageNumber = parseInt(page) || 1;
+        const pageSize = parseInt(limit) || 10;
+        const totalCount = await userModel.countDocuments({ role: "seller" });
         const totalPages = Math.ceil(totalCount / pageSize);
-
         const sellersData = await adminSellersLinkModel.aggregate([
             { $match: { adminID: req.user.id } },
             {
@@ -54,25 +52,19 @@ const listSeller = async (req, res) => {
                     }
                 }
             },
+            { $skip: (pageNumber - 1) * pageSize }, // Skip documents based on page number and limit
+            { $limit: parseInt(pageSize) }
         ])
 
         const transformSeller = sellersData.map((item) => item.data).map(([seller]) => seller)
-        
-        // const users = await userModel.find()
-        //     .skip((pageNumber - 1) * pageSize)
-        //     .limit(pageSize)
-        //     .exec();
+        const body = {
+            total: totalCount,
+            totalPages: totalPages,
+            currentPage: pageNumber,
+            sellers: transformSeller
+        }
 
 
-
-            const body ={
-                total: totalCount,
-                totalPages: totalPages,
-                currentPage: pageNumber,
-                sellers: sellersData
-            }
-      
-        
         return res.status(200).json({ success: true, result: body, message: `Seller and associated buyers fetched successfully` })
 
     } catch (err) {

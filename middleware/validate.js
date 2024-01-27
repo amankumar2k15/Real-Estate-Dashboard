@@ -16,12 +16,10 @@ const validate = (validations) => {
             tmp.push(error.param);
             return true;
         });
-
-
         if (errors.isEmpty()) {
             return next();
         }
-        return res.status(400).json(validateRes(errs[0].msg));
+        return res.status(422).json(validateRes(errs[0].msg));
     };
 };
 
