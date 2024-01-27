@@ -5,11 +5,11 @@ const jwt = require("jsonwebtoken")
 const sellerModel = require("../model/sellorModel")
 const buyerModel = require("../model/buyerModel")
 const siteModel = require("../model/siteModel")
+const newModel = require("../model/newModel")
 // unUsed======>
 
 const sendMail = require("../helper/sendMail")
 const generateOtp = require("../helper/generateOtp")
-const userModel = require("../model/userModel")
 const adminSellersLinkModel = require("../model/adminSellersLinkModel")
 const sellerBuyersLinkModel = require("../model/sellerBuyersLinkModel")
 const generatePassword = require("../helper/generatePassword")
@@ -41,27 +41,27 @@ const register = async (req, res) => {
         if (role === "seller") {
             if (req.user.role !== "admin") return res.status(403).json({ message: 'Only admins can create sellers.' });
             // seller regster 
-                  // Validate file arrays for seller documents 
-                  const requiredFiles = ["adhaar", "companyPan", "blankCheque", "certificate_of_incorporate", "profile"];
-                  for (const file of requiredFiles) {
-                      if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
-                          return res.status(400).json({ success: false, message: `Please upload ${file} file` });
-                      }
-                  }
-      
-                  // Upload files
-                  const uploadResults = {};
-                  for (const file of requiredFiles) {
-                      const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
-                      if (!uploadResult.success) {
-                          return res.status(500).json({ success: false, message: "Error uploading image" });
-                      }
-                      uploadResults[file] = uploadResult.url;
-                  }
+            // Validate file arrays for seller documents 
+            const requiredFiles = ["adhaar", "companyPan", "blankCheque", "certificate_of_incorporate", "profile"];
+            for (const file of requiredFiles) {
+                if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
+                    return res.status(400).json({ success: false, message: `Please upload ${file} file` });
+                }
+            }
 
-            const newSeller = new userModel({
-                username, password: securedPassword, role , email,
-                basic_details : {
+            // Upload files
+            const uploadResults = {};
+            for (const file of requiredFiles) {
+                const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
+                if (!uploadResult.success) {
+                    return res.status(500).json({ success: false, message: "Error uploading image" });
+                }
+                uploadResults[file] = uploadResult.url;
+            }
+
+            const newSeller = new newModel({
+                username, password: securedPassword, role, email,
+                basic_details: {
                     profile: req.body.profile,
                     firstName: req.body.firstName,
                     lastName: req.body.lastName,
@@ -80,23 +80,23 @@ const register = async (req, res) => {
                         adhaar: uploadResults?.adhaar,
                         companyPan: uploadResults?.companyPan,
                     },
-                    isApproved:true,
-                    associated_buyers : [],
-                    associated_sites : []
+                    isApproved: true,
+                    associated_buyers: [],
+                    associated_sites: []
                 },
-                buyers : undefined,
-                trustee:undefined,
-                admin:undefined
+                buyers: undefined,
+                trustee: undefined,
+                admin: undefined
             });
             await newSeller.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Seller", message);
-            return res.status(201).json({ message: 'seller created successfully', status : 201, data: newSeller });
+            return res.status(201).json({ message: 'seller created successfully', status: 201, data: newSeller });
 
         } else if (role === "buyer") {
             //  register buyer
             if (req.user.role !== "seller") return res.status(403).json({ message: 'Only seller can create buyers.' });
-            const newBuyer = new userModel({
+            const newBuyer = new newModel({
                 ...req.body, username, password: securedPassword, role
             });
 
@@ -127,10 +127,10 @@ const register = async (req, res) => {
             await newBuyer.save()
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Buyer", message);
-            return res.status(201).json({ message: 'buyer created successfully', status : 201 , data: newBuyer });
+            return res.status(201).json({ message: 'buyer created successfully', status: 201, data: newBuyer });
 
         } else if (role === "trustee") {
-            const newTrustee = new userModel({
+            const newTrustee = new newModel({
                 username, password: securedPassword, role, email
             });
             await adminTrusteeLinkModel({ adminID: req.user.id, trusteeID: newTrustee._id }).save()
@@ -141,13 +141,13 @@ const register = async (req, res) => {
 
         } else if (role === "admin") {
             //  register admin
-            const newAdmin = new userModel({
+            const newAdmin = new newModel({
                 username, password: securedPassword, role, email
             });
             await newAdmin.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Admin", message);
-            return res.status(201).json({ message: 'admin created successfully', status : 201, data: newAdmin });
+            return res.status(201).json({ message: 'admin created successfully', status: 201, data: newAdmin });
         } else {
 
             return res.status(422).json(error(`ROLE: ${role} is invalid either it will be admin seller or buyer`, 422))
@@ -163,7 +163,7 @@ const login = async (req, res) => {
     try {
         try {
             const { username, password } = req.body;
-            const user = await userModel.findOne({ username })
+            const user = await newModel.findOne({ username })
             const isPasswordCorrect = await bcrypt.compare(password, user.password);
             if (!isPasswordCorrect)
                 return res.status(400).json(error("Wrong Password Entered", 400));
@@ -202,7 +202,7 @@ const generateOtpForPasswordReset = async (req, res) => {
         if (!email) return res.status(422).json(error("Email is missing", 422));
         const otp = generateOtp(6);
 
-        const findUser = await userModel.findOne({ email })
+        const findUser = await newModel.findOne({ email })
         if (!findUser) {
             return res.status(422).json(error("Email does not exist", 422))
         }
@@ -210,7 +210,7 @@ const generateOtpForPasswordReset = async (req, res) => {
         await sendMail(email, "Bharat Escrow Forgot Password OTP", "OTP is " + otp);
         findUser.otp = otp;
         await findUser.save()
-        // await userModel.findOneAndUpdate({ email }, { otp: otp }, { new: true });
+        // await newModel.findOneAndUpdate({ email }, { otp: otp }, { new: true });
 
         return res.status(200).json(success("OTP Sent", 200))
 
@@ -223,13 +223,13 @@ const resetPassword = async (req, res) => {
     try {
         const { newPassword, otp, email } = req.body;
 
-        const findUser = await userModel.findOne({ email })
+        const findUser = await newModel.findOne({ email })
         if (!findUser) return res.status(422).json(error("Email does not exist", 422))
         else if (findUser.otp != otp) return res.status(400).json(error("Invalid OTP entered", 400));
 
         const salt = await bcrypt.genSalt(10);
         const securedPassword = await bcrypt.hash(newPassword, salt);
-        await userModel.findOneAndUpdate({ email }, { password: securedPassword }, { new: true });
+        await newModel.findOneAndUpdate({ email }, { password: securedPassword }, { new: true });
         return res.status(200).json(success("Updated", "User password updated", 200));
 
     } catch (err) {
@@ -257,12 +257,12 @@ const userById = async (req, res) => {
     try {
         // const { isApproved, id, search } = req.query;
         // if (search) {
-        //     const users = await UserModelDashboard.find({ username: { $regex: search, $options: 'i' } }, { username: 1 });
+        //     const users = await newModel.find({ username: { $regex: search, $options: 'i' } }, { username: 1 });
         //     return res.status(201).json(
         //         success("Search result", users, 201)
         //     )
         // } else if (!isApproved) {
-        //     const user = await UserModelDashboard.findById(id)
+        //     const user = await newModel.findById(id)
         //     return res.status(201).json(
         //         success("User fetched Successfully", user, 201)
         //     )
@@ -276,7 +276,7 @@ const userById = async (req, res) => {
 const WhoAmI = async (req, res) => {
     console.log("reaching in WHO AM I StartPoint for role==> ", req.user.role)
     console.log("reaching in WHO AM I StartPoint for id==> ", req.user.id)
-    
+
     // try {
     //     const [sellerResult, buyerResult] = await Promise.all([
     //         sellerModel.findById(req.user.id),
@@ -306,7 +306,7 @@ const WhoAmI = async (req, res) => {
                 { $match: { adminID: req.user.id } },
                 {
                     $lookup: {
-                        from: "usermodels",
+                        from: "newModel",
                         localField: "sellerID",
                         foreignField: "_id",
                         as: "data"
@@ -335,7 +335,7 @@ const WhoAmI = async (req, res) => {
                 { $match: { adminID: req.user.id } },
                 {
                     $lookup: {
-                        from: "usermodels",
+                        from: "newModel",
                         localField: "trusteeID",
                         foreignField: "_id",
                         as: "data"
@@ -361,7 +361,7 @@ const WhoAmI = async (req, res) => {
             const transformTrustee = trusteeData.map((item) => item.data).map(([trustee]) => trustee)
 
 
-            const fetchUserData = await userModel.findOne({ _id: req.user.id })
+            const fetchUserData = await newModel.findOne({ _id: req.user.id })
 
             let body = {
                 personalInfo: fetchUserData,
@@ -379,7 +379,7 @@ const WhoAmI = async (req, res) => {
                 { $match: { sellerID: req.user.id } },
                 {
                     $lookup: {
-                        from: "usermodels",
+                        from: "newModel",
                         localField: "buyerID",
                         foreignField: "_id",
                         as: "data"
@@ -400,7 +400,7 @@ const WhoAmI = async (req, res) => {
                     }
                 },
             ]);
-            const fetchUserData = await userModel.findOne({ _id: req.user.id })
+            const fetchUserData = await newModel.findOne({ _id: req.user.id })
 
             let body = {
                 personalInfo: fetchUserData,

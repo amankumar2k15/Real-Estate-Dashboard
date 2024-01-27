@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
 
-const userSchema = mongoose.Schema({
+const newSchema = mongoose.Schema({
     username: { type: String, required: true },
     password: { type: String, required: true },
     email: { type: String, default: null },
@@ -11,7 +11,7 @@ const userSchema = mongoose.Schema({
     },
     otp: { type: Number, default: null },
     seller: {
-        basic_details : {
+        basic_details: {
             profile: { type: String, default: null },
             firstName: { type: String, default: null },
             lastName: { type: String, default: null },
@@ -29,19 +29,19 @@ const userSchema = mongoose.Schema({
             adhaar: { type: String },
             companyPan: { type: String },
         },
-        isApproved: {type: Boolean},
-        associated_buyers : [],
-        associated_sites : []
+        isApproved: { type: Boolean },
+        associated_buyers: [],
+        associated_sites: []
     },
     buyer: {
-        basic_details : {
+        basic_details: {
             profile: { type: String, default: null },
             firstName: { type: String, default: null },
             lastName: { type: String, default: null },
             phone: { type: Number, default: null },
             address: { type: String, default: null },
             location: { type: String, default: null },
-          
+
             state: { type: String, default: null },
             city: { type: String, default: null },
             pincode: { type: String, default: null },
@@ -52,18 +52,18 @@ const userSchema = mongoose.Schema({
             source_of_fund: { type: String },
             adhaar: { type: String },
         },
-        isApproved: {type: Boolean},
-        purchased_site : []
+        isApproved: { type: Boolean },
+        purchased_site: []
     },
     trustee: {
-        basic_details : {
+        basic_details: {
             profile: { type: String, default: null },
             firstName: { type: String, default: null },
             lastName: { type: String, default: null },
             phone: { type: Number, default: null },
             address: { type: String, default: null },
             location: { type: String, default: null },
-          
+
             state: { type: String, default: null },
             city: { type: String, default: null },
             pincode: { type: String, default: null },
@@ -72,10 +72,10 @@ const userSchema = mongoose.Schema({
             individualPan: { type: String },
             bankName: { type: String },
         },
-        isApproved: {type: Boolean},
+        isApproved: { type: Boolean },
     },
     admin: {
-        basic_details : {
+        basic_details: {
             profile: { type: String, default: null },
             firstName: { type: String, default: null },
             lastName: { type: String, default: null },
@@ -83,19 +83,19 @@ const userSchema = mongoose.Schema({
             phone: { type: Number, default: null },
             address: { type: String, default: null },
             location: { type: String, default: null },
-          
+
             state: { type: String, default: null },
             city: { type: String, default: null },
             pincode: { type: String, default: null },
         },
-        associated_sellers : [],
-        associated_trustee : [],
-        unassigned_buyers : [],
+        associated_sellers: [],
+        associated_trustee: [],
+        unassigned_buyers: [],
     }
 })
 
-userSchema.index({ username: 'text' });
+newSchema.index({ username: 'text' });
 
-const userModel = mongoose.model("userModel", userSchema)
+const newModel = mongoose.model("newModel", newSchema)
 
-module.exports = userModel
+module.exports = newModel
