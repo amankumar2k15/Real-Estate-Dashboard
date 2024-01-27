@@ -75,7 +75,7 @@ const register = async (req, res) => {
             await newSeller.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Seller", message);
-            return res.status(201).json({ message: 'seller created successfully', data: newSeller });
+            return res.status(201).json({ message: 'seller created successfully', status : 201, data: newSeller });
 
         } else if (role === "buyer") {
             //  register buyer
@@ -111,7 +111,7 @@ const register = async (req, res) => {
             await newBuyer.save()
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Buyer", message);
-            return res.status(201).json({ message: 'buyer created successfully', data: newBuyer });
+            return res.status(201).json({ message: 'buyer created successfully', status : 201 , data: newBuyer });
 
         } else if (role === "trustee") {
             const newTrustee = new userModel({
@@ -131,7 +131,7 @@ const register = async (req, res) => {
             await newAdmin.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Admin", message);
-            return res.status(201).json({ message: 'admin created successfully', data: newAdmin });
+            return res.status(201).json({ message: 'admin created successfully', status : 201, data: newAdmin });
         } else {
 
             return res.status(422).json(error(`ROLE: ${role} is invalid either it will be admin seller or buyer`, 422))
