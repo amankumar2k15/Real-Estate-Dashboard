@@ -142,7 +142,7 @@ const register = async (req, res) => {
             return res.status(201).json({ message: 'buyer created successfully', status: 201, data: newBuyer });
 
         } else if (role === "trustee") {
-            const requiredFiles = ["individualPan"];
+            const requiredFiles = ["individualPan" , "profile"];
             for (const file of requiredFiles) {
                 if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
                     return res.status(400).json({ success: false, message: `Please upload ${file} file` });
@@ -162,7 +162,7 @@ const register = async (req, res) => {
                 username, password: securedPassword, role, email,
                 trustee: {
                     basic_details: {
-                        profile: req.body.profile,
+                        profile: uploadResults.profile,
                         firstName: req.body.firstName,
                         lastName: req.body.lastName,
                         phone: req.body.phone,
@@ -186,6 +186,23 @@ const register = async (req, res) => {
 
         } else if (role === "admin") {
             //  register admin
+            const requiredFiles = ["profile"];
+            for (const file of requiredFiles) {
+                if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
+                    return res.status(400).json({ success: false, message: `Please upload ${file} file` });
+                }
+            }
+
+            
+            // Upload files
+            const uploadResults = {};
+            for (const file of requiredFiles) {
+                const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
+                if (!uploadResult.success) {
+                    return res.status(500).json({ success: false, message: "Error uploading image" });
+                }
+                uploadResults[file] = uploadResult.url;
+            }
             const newAdmin = new newModel({
                 username, password: securedPassword, role, email,
 
