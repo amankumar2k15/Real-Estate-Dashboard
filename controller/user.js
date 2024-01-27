@@ -64,7 +64,7 @@ const register = async (req, res) => {
 
                 seller: {
                     basic_details: {
-                        profile: req.body.profile,
+                        profile: uploadResults?.profile,
                         firstName: req.body.firstName,
                         lastName: req.body.lastName,
                         phone: req.body.phone,
@@ -84,10 +84,8 @@ const register = async (req, res) => {
                     isApproved: true,
                     associated_buyers: [],
                     associated_sites: []
-                },
-                buyers: undefined,
-                trustee: undefined,
-                admin: undefined
+                }
+               
             });
             await newSeller.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
@@ -97,12 +95,54 @@ const register = async (req, res) => {
         } else if (role === "buyer") {
             //  register buyer
             if (req.user.role !== "seller") return res.status(403).json({ message: 'Only seller can create buyers.' });
+                  // Validate file arrays
+                  const requiredFiles = ["adhaar", "individualPan", "blankCheque", "source_of_fund", "profile"];
+                  for (const file of requiredFiles) {
+                      if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
+                          return res.status(400).json({ success: false, message: `Please upload ${file} file` });
+                      }
+                  }
+      
+                  // Upload files
+                  const uploadResults = {};
+                  for (const file of requiredFiles) {
+                      const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
+                      if (!uploadResult.success) {
+                          return res.status(500).json({ success: false, message: "Error uploading image" });
+                      }
+                      uploadResults[file] = uploadResult.url;
+                  }
             const newBuyer = new newModel({
-                ...req.body, username, password: securedPassword, role
+                 username, password: securedPassword, role,
+                buyer: {
+                    basic_details: {
+                        profile: uploadResults?.profile,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        phone: req.body.phone,
+                        address: req.body.address,
+                        location: req.body.location,
+                        state: req.body.state,
+                        city: req.body.city,
+                        pincode: req.body.pincode,
+                    },
+                    kyc_details: {
+                        source_of_fund: uploadResults.source_of_fund,
+                        blankCheque: uploadResults?.blankCheque,
+                        adhaar: uploadResults?.adhaar,
+                        individualPan: uploadResults?.individualPan,
+                    },
+                    isApproved: true,
+                    purchased_site: [],
+                },
             });
+            await newBuyer.save()
+            const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
+            await sendMail(email, "Welcome Buyer", message);
+            return res.status(201).json({ message: 'buyer created successfully', status: 201, data: newBuyer });
 
-            // Validate file arrays
-            const requiredFiles = ["adhaar", "individualPan", "blankCheque", "source_of_fund", "profile"];
+        } else if (role === "trustee") {
+            const requiredFiles = ["individualPan"];
             for (const file of requiredFiles) {
                 if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
                     return res.status(400).json({ success: false, message: `Please upload ${file} file` });
@@ -118,23 +158,27 @@ const register = async (req, res) => {
                 }
                 uploadResults[file] = uploadResult.url;
             }
-            // Update user properties with Cloudinary URLs
-            newBuyer.adhaar = uploadResults.adhaar;
-            newBuyer.profile = uploadResults.profile;
-            newBuyer.individualPan = uploadResults.individualPan;
-            newBuyer.blankCheque = uploadResults.blankCheque;
-            newBuyer.source_of_fund = uploadResults.source_of_fund;
-            await sellerBuyersLinkModel({ sellerID: req.user.id, buyerID: newBuyer._id }).save()
-            await newBuyer.save()
-            const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
-            await sendMail(email, "Welcome Buyer", message);
-            return res.status(201).json({ message: 'buyer created successfully', status: 201, data: newBuyer });
-
-        } else if (role === "trustee") {
             const newTrustee = new newModel({
-                username, password: securedPassword, role, email
+                username, password: securedPassword, role, email,
+                trustee: {
+                    basic_details: {
+                        profile: req.body.profile,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        phone: req.body.phone,
+                        address: req.body.address,
+                        location: req.body.location,
+                        state: req.body.state,
+                        city: req.body.city,
+                        pincode: req.body.pincode,
+                    },
+                    kyc_details: {
+                        bankName: req.body.bankName,
+                        individualPan: uploadResults?.individualPan,
+                    },
+                    isApproved: true,
+                },
             });
-            await adminTrusteeLinkModel({ adminID: req.user.id, trusteeID: newTrustee._id }).save()
             await newTrustee.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Trustee", message);
@@ -144,9 +188,6 @@ const register = async (req, res) => {
             //  register admin
             const newAdmin = new newModel({
                 username, password: securedPassword, role, email,
-                seller: null,
-                buyers: null,
-                trustee: null,
                 admin: {
                     basic_details: {
                         profile: req.body.profile,
