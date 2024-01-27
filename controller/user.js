@@ -85,7 +85,7 @@ const register = async (req, res) => {
                     associated_buyers: [],
                     associated_sites: []
                 }
-               
+
             });
             await newSeller.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
@@ -95,25 +95,25 @@ const register = async (req, res) => {
         } else if (role === "buyer") {
             //  register buyer
             if (req.user.role !== "seller") return res.status(403).json({ message: 'Only seller can create buyers.' });
-                  // Validate file arrays
-                  const requiredFiles = ["adhaar", "individualPan", "blankCheque", "source_of_fund", "profile"];
-                  for (const file of requiredFiles) {
-                      if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
-                          return res.status(400).json({ success: false, message: `Please upload ${file} file` });
-                      }
-                  }
-      
-                  // Upload files
-                  const uploadResults = {};
-                  for (const file of requiredFiles) {
-                      const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
-                      if (!uploadResult.success) {
-                          return res.status(500).json({ success: false, message: "Error uploading image" });
-                      }
-                      uploadResults[file] = uploadResult.url;
-                  }
+            // Validate file arrays
+            const requiredFiles = ["adhaar", "individualPan", "blankCheque", "source_of_fund", "profile"];
+            for (const file of requiredFiles) {
+                if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
+                    return res.status(400).json({ success: false, message: `Please upload ${file} file` });
+                }
+            }
+
+            // Upload files
+            const uploadResults = {};
+            for (const file of requiredFiles) {
+                const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
+                if (!uploadResult.success) {
+                    return res.status(500).json({ success: false, message: "Error uploading image" });
+                }
+                uploadResults[file] = uploadResult.url;
+            }
             const newBuyer = new newModel({
-                 username, password: securedPassword, role,
+                username, password: securedPassword, role,
                 buyer: {
                     basic_details: {
                         profile: uploadResults?.profile,
@@ -188,23 +188,24 @@ const register = async (req, res) => {
             //  register admin
             const newAdmin = new newModel({
                 username, password: securedPassword, role, email,
-                admin: {
-                    basic_details: {
-                        profile: req.body.profile,
-                        firstName: req.body.firstName,
-                        lastName: req.body.lastName,
-                        phone: req.body.phone,
-                        address: req.body.address,
-                        location: req.body.location,
-                        state: req.body.state,
-                        city: req.body.city,
-                        pincode: req.body.pincode,
-                    },
-                    associated_sellers: [],
-                    associated_trustee: [],
-                    unassigned_buyers: [],
-                }
+
             });
+            newAdmin.admin = {
+                basic_details: {
+                    profile: uploadResults?.profile,
+                    firstName: req.body.firstName,
+                    lastName: req.body.lastName,
+                    phone: req.body.phone,
+                    address: req.body.address,
+                    location: req.body.location,
+                    state: req.body.state,
+                    city: req.body.city,
+                    pincode: req.body.pincode,
+                },
+                associated_sellers: [],
+                associated_trustee: [],
+                unassigned_buyers: [],
+            }
             await newAdmin.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Admin", message);
