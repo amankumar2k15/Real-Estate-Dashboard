@@ -61,18 +61,19 @@ const register = async (req, res) => {
 
             const newSeller = new newModel({
                 username, password: securedPassword, role, email,
-                basic_details: {
-                    profile: req.body.profile,
-                    firstName: req.body.firstName,
-                    lastName: req.body.lastName,
-                    phone: req.body.phone,
-                    address: req.body.address,
-                    location: req.body.location,
-                    state: req.body.state,
-                    city: req.body.city,
-                    pincode: req.body.pincode,
-                },
+
                 seller: {
+                    basic_details: {
+                        profile: req.body.profile,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        phone: req.body.phone,
+                        address: req.body.address,
+                        location: req.body.location,
+                        state: req.body.state,
+                        city: req.body.city,
+                        pincode: req.body.pincode,
+                    },
                     kyc_details: {
                         companyName: req.body.companyName,
                         certificate_of_incorporate: uploadResults?.certificate_of_incorporate,
@@ -142,7 +143,26 @@ const register = async (req, res) => {
         } else if (role === "admin") {
             //  register admin
             const newAdmin = new newModel({
-                username, password: securedPassword, role, email
+                username, password: securedPassword, role, email,
+                seller: undefined,
+                buyers: undefined,
+                trustee: undefined,
+                admin: {
+                    basic_details: {
+                        profile: req.body.profile,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        phone: req.body.phone,
+                        address: req.body.address,
+                        location: req.body.location,
+                        state: req.body.state,
+                        city: req.body.city,
+                        pincode: req.body.pincode,
+                    },
+                    associated_sellers: [],
+                    associated_trustee: [],
+                    unassigned_buyers: [],
+                }
             });
             await newAdmin.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
