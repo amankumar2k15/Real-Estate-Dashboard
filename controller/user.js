@@ -144,9 +144,9 @@ const register = async (req, res) => {
             //  register admin
             const newAdmin = new newModel({
                 username, password: securedPassword, role, email,
-                seller: undefined,
-                buyers: undefined,
-                trustee: undefined,
+                seller: null,
+                buyers: null,
+                trustee: null,
                 admin: {
                     basic_details: {
                         profile: req.body.profile,
