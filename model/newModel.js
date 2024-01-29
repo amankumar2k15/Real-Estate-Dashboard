@@ -30,8 +30,20 @@ const newSchema = mongoose.Schema({
             companyPan: { type: String },
         },
         isApproved: { type: Boolean },
-        associated_buyers:{ type: Array },
-        associated_sites:{ type: Array }
+        associated_buyers:  {
+            type: [
+                {
+                    buyerId: mongoose.Types.ObjectId
+                }
+            ]
+        },
+        associated_sites:  {
+            type: [
+                {
+                    siteId: mongoose.Types.ObjectId
+                }
+            ]
+        }
     },
     buyer: {
         basic_details: {
@@ -52,7 +64,13 @@ const newSchema = mongoose.Schema({
             adhaar: { type: String },
         },
         isApproved: { type: Boolean },
-        purchased_site:{ type: Array }
+        purchased_site: {
+            type: [
+                {
+                    siteId: mongoose.Types.ObjectId
+                }
+            ]
+        }
     },
     trustee: {
         basic_details: {
@@ -87,12 +105,20 @@ const newSchema = mongoose.Schema({
             city: { type: String, },
             pincode: { type: String, },
         },
-        associated_sellers: { type: [
-            {
-                sellerId : mongoose.Types.ObjectId
-            }
-        ] },
-        associated_trustee: { type: Array },
+        associated_sellers: {
+            type: [
+                {
+                    sellerId: mongoose.Types.ObjectId
+                }
+            ]
+        },
+        associated_trustee:  {
+            type: [
+                {
+                    trusteeId : mongoose.Types.ObjectId
+                }
+            ]
+        },
         unassigned_buyers: { type: Array },
     }
 })

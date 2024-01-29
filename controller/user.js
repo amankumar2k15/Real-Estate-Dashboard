@@ -22,19 +22,13 @@ require('dotenv').config();
 // useful
 const register = async (req, res) => {
     try {
-        console.log("Here we are extracting body in register ap for users====>", req.body);
-        // return res.send(res.body)
         const { username, role, email } = req.body;
         if (!role) return res.status(403).json({ message: 'role is required' });
         const salt = await bcrypt.genSalt(10);
         let password = generatePassword(req.body.username)
         console.log("Generated Password:", password);
         const securedPassword = await bcrypt.hash(password, salt);
-        // Validate request body
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ success: false, errors: errors.array() });
-        }
+
         // conditions checking which role is being created 
         if (role === "seller") {
             if (req.user.role !== "admin") return res.status(403).json({ message: 'Only admins can create sellers.' });
@@ -55,33 +49,6 @@ const register = async (req, res) => {
                 }
                 uploadResults[file] = uploadResult.url;
             }
-            // const newSeller = new newModel({
-            //     username, password: securedPassword, role, email,
-
-            //     seller: {
-            //         basic_details: {
-            //             profile: uploadResults?.profile,
-            //             firstName: req.body.firstName,
-            //             lastName: req.body.lastName,
-            //             phone: req.body.phone,
-            //             address: req.body.address,
-            //             location: req.body.location,
-            //             state: req.body.state,
-            //             city: req.body.city,
-            //             pincode: req.body.pincode,
-            //         },
-            //         kyc_details: {
-            //             companyName: req.body.companyName,
-            //             certificate_of_incorporate: uploadResults?.certificate_of_incorporate,
-            //             blankCheque: uploadResults?.blankCheque,
-            //             adhaar: uploadResults?.adhaar,
-            //             companyPan: uploadResults?.companyPan,
-            //         },
-            //         isApproved: true,
-            //         associated_buyers: [],
-            //         associated_sites: []
-            //     }, buyers: undefined, admin: undefined , trustee : undefined
-            // });
             const newSeller = new newModel({
                 username,
                 password,
@@ -99,7 +66,7 @@ const register = async (req, res) => {
                         state: req.body.state,
                         city: req.body.city,
                         pincode: req.body.pincode,
-                    },
+                 e   },
                     kyc_details: {
                         companyName: req.body.companyName,
                         certificate_of_incorporate: uploadResults?.certificate_of_incorporate,
@@ -112,15 +79,10 @@ const register = async (req, res) => {
                     associated_buyers: [],
                     associated_sites: []
                 } : undefined,
-                trustee: role === 'trustee' ? {
-                    ...trusteeData,
-                    isApproved: false // Set isApproved to false by default for trustee
-                } : undefined,
-                admin: undefined // Exclude admin data when creating new data
             });
             await newSeller.save();
             const adminId = req.user.id; // Assuming the admin's _id is stored in req.user._id
-            await newModel.findByIdAndUpdate(adminId, { $push: { 'admin.associated_sellers': {sellerId : newSeller._id} } });
+            await newModel.findByIdAndUpdate(adminId, { $push: { 'admin.associated_sellers': { sellerId: newSeller._id } } });
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Seller", message);
             return res.status(201).json({ message: 'seller created successfully', status: 201, data: newSeller });
@@ -168,7 +130,12 @@ const register = async (req, res) => {
                     purchased_site: [],
                 },
             });
+
+
             await newBuyer.save()
+
+            const sellerId = req.user.id; // Assuming the admin's _id is stored in req.user._id
+            await newModel.findByIdAndUpdate(sellerId, { $push: { 'seller.associated_buyers': { buyerId: newBuyer._id } } });
             // const adminId = req.user.id; // Assuming the admin's _id is stored in req.user._id
             // await newModel.findByIdAndUpdate(adminId, { $push: { 'admin.associated_sellers': newSeller._id } });
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
@@ -176,6 +143,8 @@ const register = async (req, res) => {
             return res.status(201).json({ message: 'buyer created successfully', status: 201, data: newBuyer });
 
         } else if (role === "trustee") {
+            if (req.user.role !== "admin") return res.status(403).json({ message: 'Only admins can create trustee.' });
+
             const requiredFiles = ["individualPan", "profile"];
             for (const file of requiredFiles) {
                 if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
@@ -215,6 +184,8 @@ const register = async (req, res) => {
                 seller: undefined, admin: undefined, buyer: undefined
             });
             await newTrustee.save();
+            const adminId = req.user.id; // Assuming the admin's _id is stored in req.user._id
+            await newModel.findByIdAndUpdate(adminId, { $push: { 'admin.associated_trustee': { trusteeId: newTrustee._id } } });
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Trustee", message);
             return res.status(201).json({ message: 'trustee created successfully', data: newTrustee });
@@ -262,7 +233,6 @@ const register = async (req, res) => {
             await sendMail(email, "Welcome Admin", message);
             return res.status(201).json({ message: 'admin created successfully', status: 201, data: newAdmin });
         } else {
-
             return res.status(422).json(error(`ROLE: ${role} is invalid either it will be admin seller or buyer`, 422))
         }
     } catch (err) {
@@ -447,42 +417,51 @@ const WhoAmI = async (req, res) => {
             console.log("reaching in WHO AM I inside if", req.user.username)
 
             const { username } = req.user;
-                // Perform aggregation based on user's role
+            // Perform aggregation based on user's role
             console.log("reaching in WHO AM I inside if", req.user.username)
+            const adminData = await newModel.find({
+                $and: [
+                    { role: 'admin' },
+                    { username: username } // Replace 'username' with the specific username value you're searching for
+                ]
+            }).populate({
+                path: 'admin.associated_sellers',
+                populate: { path: 'sellerId', select: 'username email seller' } // Specify the fields you want to retrieve for the seller
+            }) // Select only the admin field to retrieve
 
-             // Perform aggregation based on user's role
-             const userDetails = await newModel.aggregate([
-                { $match: { username } }, // Match the user by username
-                { $unwind: "$admin.associated_sellers" }, // Deconstruct the associated_sellers array
-                {
-                    $lookup: {
-                        from: "newModel", // Assuming the collection name is 'newModel'
-                        localField: "admin.associated_sellers.sellerId",
-                        foreignField: "_id",
-                        as: "sellers"
-                    }
-                },
-                {
-                    $project: {
-                        username: 1, // Keep the username
-                        email: 1, // Keep the email
-                        sellers: {
-                            username: 1,
-                            email: 1,
-                            _id: 1,
-                           
-                        } // Include the sellers array
-                    }
-                }
-            ]);
+            if (!adminData || adminData.length === 0) {
+                return res.status(404).json({ success: false, message: 'Admin data not found.' });
+            }
+            console.log(adminData, "adminData");
+            // Extract only the seller details from the populated associated_sellers array if it exists
+            let sellers = [];
+            if (adminData[0].admin && adminData[0].admin.associated_sellers) {
+                sellers = adminData[0].admin.associated_sellers.map(seller => {
+                    console.log(seller, "seller individual");
+                    return {
+                        username: seller.sellerId.username,
+                        email: seller.sellerId.email,
+                        profile: seller.sellerId.seller.basic_details.profile,
+                        location: seller.sellerId.seller.basic_details.location ? seller.sellerId.seller.basic_details.location : "N/A",
+                        state: seller.sellerId.seller.basic_details.state ? seller.sellerId.seller.basic_details.state : "N/A",
+                        city: seller.sellerId.seller.basic_details.city ? seller.sellerId.seller.basic_details.city : "NA",
+                        approved: seller.sellerId.seller.isApproved,
+                    };
+                });
+            }
 
 
-                console.log(userDetails, " userDetails");
-                if (!userDetails || userDetails.length === 0) {
-                    return res.status(404).json({ success: false, message: "User not found" });
-                }
+            // Construct the response with the desired admin fields and the populated sellers
+            const responseData = {
+                username: adminData[0].username,
+                email: adminData[0].email,
+                // Add other admin fields as needed
+                associated_sellers: sellers
+            };
 
-                return res.status(200).json({ success: true, result: userDetails })
+            // Extract only the seller details from the populated associated_sellers array
+            // const sellers = adminData.admin.associated_sellers.map(seller => seller.sellerId);
+            res.status(200).json({ success: true, result: responseData });
         } else if (req.user.role === "seller") {
             const buyersData = await sellerBuyersLinkModel.aggregate([
                 { $match: { sellerID: req.user.id } },
