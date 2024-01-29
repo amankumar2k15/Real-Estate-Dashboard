@@ -101,7 +101,6 @@ const newSchema = mongoose.Schema({
             phone: { type: Number, },
             address: { type: String, },
             location: { type: String, },
-
             state: { type: String, },
             city: { type: String, },
             pincode: { type: String, },
