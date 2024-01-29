@@ -20,7 +20,8 @@ delete seller
 
 
 
-const listSeller = async (req, res) => { 
+
+const listSeller = async (req, res) => {
     try {
         console.log("reaching api page for paginate seller listing ", req.query);
         const { page, limit, type } = req.query;
@@ -143,7 +144,7 @@ const deleteSeller = async (req, res) => {
         const buyerIds = sellerData?.seller?.associated_buyers.map((link) => link.buyerId);
 
 
-        console.log(buyerIds , "buyerIds");
+        console.log(buyerIds, "buyerIds");
 
         // Update buyers' assigned key to false
         await newModel.updateMany(
@@ -155,11 +156,11 @@ const deleteSeller = async (req, res) => {
             { 'admin.associated_sellers.sellerId': sellerID }, // Filter condition for finding the seller ID in the associated_sellers array
             { $pull: { 'admin.associated_sellers': { sellerId: sellerID } } } // Pull operation to remove the seller ID from the array
         );
-       
+
         // Delete the seller and associated buyers links
         await newModel.deleteOne({ _id: sellerID });
 
-        return res.status(200).json({ success: true, message: `Seller and associated buyers deleted successfully` });
+        return res.status(204).json({ success: true, message: `Seller and associated buyers deleted successfully` });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ success: false, message: err.message });
