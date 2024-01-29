@@ -66,7 +66,7 @@ const register = async (req, res) => {
                         state: req.body.state,
                         city: req.body.city,
                         pincode: req.body.pincode,
-                 e   },
+                    },
                     kyc_details: {
                         companyName: req.body.companyName,
                         certificate_of_incorporate: uploadResults?.certificate_of_incorporate,
@@ -426,7 +426,7 @@ const WhoAmI = async (req, res) => {
                 ]
             }).populate({
                 path: 'admin.associated_sellers',
-                populate: { path: 'sellerId', select: 'username email seller' } // Specify the fields you want to retrieve for the seller
+                populate: { path: 'sellerId', select: '_id username email seller' } // Specify the fields you want to retrieve for the seller
             }) // Select only the admin field to retrieve
 
             if (!adminData || adminData.length === 0) {
@@ -440,9 +440,10 @@ const WhoAmI = async (req, res) => {
                     console.log(seller, "seller individual");
                     return {
                         username: seller.sellerId.username,
+                        _id: seller.sellerId._id,
                         email: seller.sellerId.email,
-                        phone : seller.sellerId.seller.basic_details.phone ? seller.sellerId.seller.basic_details.phone : "N/A",
-                        companyName : seller.sellerId.seller.basic_details.companyName ? seller.sellerId.seller.basic_details.companyName : "N/A",
+                        phone: seller.sellerId.seller.basic_details.phone ? seller.sellerId.seller.basic_details.phone : "N/A",
+                        companyName: seller.sellerId.seller.basic_details.companyName ? seller.sellerId.seller.basic_details.companyName : "N/A",
                         profile: seller.sellerId.seller.basic_details.profile,
                         location: seller.sellerId.seller.basic_details.location ? seller.sellerId.seller.basic_details.location : "N/A",
                         state: seller.sellerId.seller.basic_details.state ? seller.sellerId.seller.basic_details.state : "N/A",
@@ -457,8 +458,8 @@ const WhoAmI = async (req, res) => {
             const responseData = {
                 username: adminData[0].username,
                 email: adminData[0].email,
-                phone : adminData[0].admin.basic_details.phone ? adminData[0].admin.basic_details.phone : "N/A",
-                profile : adminData[0].admin.basic_details.profile ? adminData[0].admin.basic_details.profile : "N/A",
+                phone: adminData[0].admin.basic_details.phone ? adminData[0].admin.basic_details.phone : "N/A",
+                profile: adminData[0].admin.basic_details.profile ? adminData[0].admin.basic_details.profile : "N/A",
                 // Add other admin fields as needed
                 associated_sellers: sellers
             };
