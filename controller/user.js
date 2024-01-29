@@ -447,7 +447,7 @@ const WhoAmI = async (req, res) => {
                         location: seller?.sellerId?.seller?.basic_details?.location ? seller?.sellerId?.seller?.basic_details?.location : "N/A",
                         state: seller?.sellerId?.seller?.basic_details?.state ? seller?.sellerId?.seller?.basic_details?.state : "N/A",
                         city: seller?.sellerId?.seller?.basic_details?.city ? seller?.sellerId?.seller?.basic_details?.city : "N/A",
-                        // approved: seller?.sellerId.seller.isApproved,
+                        approved: seller?.sellerId?.seller?.isApproved,
                         numBuyers :numBuyers
                     };
                 });
