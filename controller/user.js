@@ -441,10 +441,12 @@ const WhoAmI = async (req, res) => {
                     return {
                         username: seller.sellerId.username,
                         email: seller.sellerId.email,
+                        phone : seller.sellerId.seller.basic_details.phone ? seller.sellerId.seller.basic_details.phone : "N/A",
+                        companyName : seller.sellerId.seller.basic_details.companyName ? seller.sellerId.seller.basic_details.companyName : "N/A",
                         profile: seller.sellerId.seller.basic_details.profile,
                         location: seller.sellerId.seller.basic_details.location ? seller.sellerId.seller.basic_details.location : "N/A",
                         state: seller.sellerId.seller.basic_details.state ? seller.sellerId.seller.basic_details.state : "N/A",
-                        city: seller.sellerId.seller.basic_details.city ? seller.sellerId.seller.basic_details.city : "NA",
+                        city: seller.sellerId.seller.basic_details.city ? seller.sellerId.seller.basic_details.city : "N/A",
                         approved: seller.sellerId.seller.isApproved,
                     };
                 });
@@ -455,6 +457,8 @@ const WhoAmI = async (req, res) => {
             const responseData = {
                 username: adminData[0].username,
                 email: adminData[0].email,
+                phone : adminData[0].admin.basic_details.phone ? adminData[0].admin.basic_details.phone : "N/A",
+                profile : adminData[0].admin.basic_details.profile ? adminData[0].admin.basic_details.profile : "N/A",
                 // Add other admin fields as needed
                 associated_sellers: sellers
             };
