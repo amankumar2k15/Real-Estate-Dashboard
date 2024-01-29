@@ -435,6 +435,7 @@ const WhoAmI = async (req, res) => {
             let sellers = [];
             if (adminData[0].admin && adminData[0].admin.associated_sellers) {
                 sellers = adminData[0].admin.associated_sellers.map(seller => {
+                    const numBuyers = sellerData ? sellerData.seller.associated_buyers.length : 0;
                     console.log(seller, "seller individual");
                     return {
                         username: seller.sellerId.username,
@@ -447,6 +448,8 @@ const WhoAmI = async (req, res) => {
                         state: seller.sellerId.seller.basic_details.state ? seller.sellerId.seller.basic_details.state : "N/A",
                         city: seller.sellerId.seller.basic_details.city ? seller.sellerId.seller.basic_details.city : "N/A",
                         approved: seller.sellerId.seller.isApproved,
+
+                        numBuyers :numBuyers
                     };
                 });
             }
@@ -486,7 +489,7 @@ const WhoAmI = async (req, res) => {
             if (!sellerData || sellerData.length === 0) {
                 return res.status(404).json({ success: false, message: 'Seller data not found.' });
             }
-            
+
             console.log(sellerData, "sellerData");
             // Extract only the seller details from the populated associated_sellers array if it exists
             let buyers = [];
