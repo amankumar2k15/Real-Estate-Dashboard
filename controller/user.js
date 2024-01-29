@@ -435,20 +435,19 @@ const WhoAmI = async (req, res) => {
             let sellers = [];
             if (adminData[0].admin && adminData[0].admin.associated_sellers) {
                 sellers = adminData[0].admin.associated_sellers.map(seller => {
-                    const numBuyers = sellerData ? sellerData.seller.associated_buyers.length : 0;
-                    console.log(seller, "seller individual");
+                    const numBuyers = seller?.sellerId?.seller?.associated_buyers?.length ? seller?.sellerId?.seller?.associated_buyers?.length : 0;
+                    console.log(seller, "seller individual" , numBuyers);
                     return {
-                        username: seller.sellerId.username,
-                        _id: seller.sellerId._id,
-                        email: seller.sellerId.email,
-                        phone: seller.sellerId.seller.basic_details.phone ? seller.sellerId.seller.basic_details.phone : "N/A",
-                        companyName: seller.sellerId.seller.basic_details.companyName ? seller.sellerId.seller.basic_details.companyName : "N/A",
-                        profile: seller.sellerId.seller.basic_details.profile,
-                        location: seller.sellerId.seller.basic_details.location ? seller.sellerId.seller.basic_details.location : "N/A",
-                        state: seller.sellerId.seller.basic_details.state ? seller.sellerId.seller.basic_details.state : "N/A",
-                        city: seller.sellerId.seller.basic_details.city ? seller.sellerId.seller.basic_details.city : "N/A",
-                        approved: seller.sellerId.seller.isApproved,
-
+                        username: seller?.sellerId?.username,
+                        _id: seller?.sellerId?._id,
+                        email: seller?.sellerId?.email,
+                        phone: seller?.sellerId?.seller?.basic_details?.phone ? seller?.sellerId?.seller?.basic_details?.phone : "N/A",
+                        companyName: seller?.sellerId?.seller?.basic_details?.companyName ? seller?.sellerId?.seller?.basic_details.companyName : "N/A",
+                        profile: seller?.sellerId?.seller?.basic_details?.profile,
+                        location: seller?.sellerId?.seller?.basic_details?.location ? seller?.sellerId?.seller?.basic_details?.location : "N/A",
+                        state: seller?.sellerId?.seller?.basic_details?.state ? seller?.sellerId?.seller?.basic_details?.state : "N/A",
+                        city: seller?.sellerId?.seller?.basic_details?.city ? seller?.sellerId?.seller?.basic_details?.city : "N/A",
+                        // approved: seller?.sellerId.seller.isApproved,
                         numBuyers :numBuyers
                     };
                 });
