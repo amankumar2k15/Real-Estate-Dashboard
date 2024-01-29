@@ -2,6 +2,7 @@ const adminSellersLinkModel = require("../model/adminSellersLinkModel");
 const newModel = require("../model/newModel");
 const sellerBuyersLinkModel = require("../model/sellerBuyersLinkModel");
 const userModel = require("../model/userModel");
+const mongoose = require("mongoose")
 
 /*
 
@@ -141,17 +142,19 @@ const deleteSeller = async (req, res) => {
         // Extract buyer IDs
         const buyerIds = sellerData?.seller?.associated_buyers.map((link) => link.buyerId);
 
+
+        console.log(buyerIds , "buyerIds");
+
         // Update buyers' assigned key to false
-        await userModel.updateMany(
+        await newModel.updateMany(
             { _id: { $in: buyerIds } }, // Filter condition for the buyers
             { $set: { assigned: false } } // Update operation to set assigned to false
         );
 
-        await userModel.updateOne(
-            { username: req.user.username }, // Filter condition for the admin user
-            { $pull: { 'admin.assigned_sellers': { sellerId: sellerID } } } // Pull operation to remove the seller ID from the array
+        await newModel.updateOne(
+            { 'admin.associated_sellers.sellerId': sellerID }, // Filter condition for finding the seller ID in the associated_sellers array
+            { $pull: { 'admin.associated_sellers': { sellerId: sellerID } } } // Pull operation to remove the seller ID from the array
         );
-
        
         // Delete the seller and associated buyers links
         await newModel.deleteOne({ _id: sellerID });
