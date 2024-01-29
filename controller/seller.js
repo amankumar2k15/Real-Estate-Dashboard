@@ -149,7 +149,7 @@ const deleteSeller = async (req, res) => {
 
         await userModel.updateOne(
             { username: req.user.username }, // Filter condition for the admin user
-            { $pull: { 'admin.assigned_sellers': sellerID } } // Pull operation to remove the seller ID from the array
+            { $pull: { 'admin.assigned_sellers': { sellerId: sellerID } } } // Pull operation to remove the seller ID from the array
         );
 
        
