@@ -25,7 +25,6 @@ const register = async (req, res) => {
         console.log("Here we are extracting body in register ap for users====>", req.body);
         // return res.send(res.body)
         const { username, role, email } = req.body;
-
         if (!role) return res.status(403).json({ message: 'role is required' });
         const salt = await bcrypt.genSalt(10);
         let password = generatePassword(req.body.username)
@@ -36,7 +35,6 @@ const register = async (req, res) => {
         if (!errors.isEmpty()) {
             return res.status(400).json({ success: false, errors: errors.array() });
         }
-
         // conditions checking which role is being created 
         if (role === "seller") {
             if (req.user.role !== "admin") return res.status(403).json({ message: 'Only admins can create sellers.' });
@@ -48,7 +46,6 @@ const register = async (req, res) => {
                     return res.status(400).json({ success: false, message: `Please upload ${file} file` });
                 }
             }
-
             // Upload files
             const uploadResults = {};
             for (const file of requiredFiles) {
@@ -58,11 +55,40 @@ const register = async (req, res) => {
                 }
                 uploadResults[file] = uploadResult.url;
             }
+            // const newSeller = new newModel({
+            //     username, password: securedPassword, role, email,
 
+            //     seller: {
+            //         basic_details: {
+            //             profile: uploadResults?.profile,
+            //             firstName: req.body.firstName,
+            //             lastName: req.body.lastName,
+            //             phone: req.body.phone,
+            //             address: req.body.address,
+            //             location: req.body.location,
+            //             state: req.body.state,
+            //             city: req.body.city,
+            //             pincode: req.body.pincode,
+            //         },
+            //         kyc_details: {
+            //             companyName: req.body.companyName,
+            //             certificate_of_incorporate: uploadResults?.certificate_of_incorporate,
+            //             blankCheque: uploadResults?.blankCheque,
+            //             adhaar: uploadResults?.adhaar,
+            //             companyPan: uploadResults?.companyPan,
+            //         },
+            //         isApproved: true,
+            //         associated_buyers: [],
+            //         associated_sites: []
+            //     }, buyers: undefined, admin: undefined , trustee : undefined
+            // });
             const newSeller = new newModel({
-                username, password: securedPassword, role, email,
-
-                seller: {
+                username,
+                password,
+                email,
+                role,
+                otp: null,
+                seller: role === 'seller' ? {
                     basic_details: {
                         profile: uploadResults?.profile,
                         firstName: req.body.firstName,
@@ -81,17 +107,23 @@ const register = async (req, res) => {
                         adhaar: uploadResults?.adhaar,
                         companyPan: uploadResults?.companyPan,
                     },
-                    isApproved: true,
+
+                    isApproved: true, // Set isApproved to false by default for seller
                     associated_buyers: [],
                     associated_sites: []
-                }
-
+                } : undefined,
+                trustee: role === 'trustee' ? {
+                    ...trusteeData,
+                    isApproved: false // Set isApproved to false by default for trustee
+                } : undefined,
+                admin: undefined // Exclude admin data when creating new data
             });
             await newSeller.save();
+            const adminId = req.user.id; // Assuming the admin's _id is stored in req.user._id
+            await newModel.findByIdAndUpdate(adminId, { $push: { 'admin.associated_sellers': {sellerId : newSeller._id} } });
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Seller", message);
             return res.status(201).json({ message: 'seller created successfully', status: 201, data: newSeller });
-
         } else if (role === "buyer") {
             //  register buyer
             if (req.user.role !== "seller") return res.status(403).json({ message: 'Only seller can create buyers.' });
@@ -137,12 +169,14 @@ const register = async (req, res) => {
                 },
             });
             await newBuyer.save()
+            // const adminId = req.user.id; // Assuming the admin's _id is stored in req.user._id
+            // await newModel.findByIdAndUpdate(adminId, { $push: { 'admin.associated_sellers': newSeller._id } });
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Buyer", message);
             return res.status(201).json({ message: 'buyer created successfully', status: 201, data: newBuyer });
 
         } else if (role === "trustee") {
-            const requiredFiles = ["individualPan" , "profile"];
+            const requiredFiles = ["individualPan", "profile"];
             for (const file of requiredFiles) {
                 if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
                     return res.status(400).json({ success: false, message: `Please upload ${file} file` });
@@ -178,6 +212,7 @@ const register = async (req, res) => {
                     },
                     isApproved: true,
                 },
+                seller: undefined, admin: undefined, buyer: undefined
             });
             await newTrustee.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
@@ -193,7 +228,6 @@ const register = async (req, res) => {
                 }
             }
 
-            
             // Upload files
             const uploadResults = {};
             for (const file of requiredFiles) {
@@ -205,24 +239,24 @@ const register = async (req, res) => {
             }
             const newAdmin = new newModel({
                 username, password: securedPassword, role, email,
-
-            });
-            newAdmin.admin = {
-                basic_details: {
-                    profile: uploadResults?.profile,
-                    firstName: req.body.firstName,
-                    lastName: req.body.lastName,
-                    phone: req.body.phone,
-                    address: req.body.address,
-                    location: req.body.location,
-                    state: req.body.state,
-                    city: req.body.city,
-                    pincode: req.body.pincode,
+                trustee: undefined, seller: undefined, buyer: undefined,
+                admin: {
+                    basic_details: {
+                        profile: uploadResults?.profile,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        phone: req.body.phone,
+                        address: req.body.address,
+                        location: req.body.location,
+                        state: req.body.state,
+                        city: req.body.city,
+                        pincode: req.body.pincode,
+                    },
                 },
                 associated_sellers: [],
                 associated_trustee: [],
                 unassigned_buyers: [],
-            }
+            });
             await newAdmin.save();
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Admin", message);
@@ -243,6 +277,7 @@ const login = async (req, res) => {
         try {
             const { username, password } = req.body;
             const user = await newModel.findOne({ username })
+            console.log(user, "user -==============> ");
             const isPasswordCorrect = await bcrypt.compare(password, user.password);
             if (!isPasswordCorrect)
                 return res.status(400).json(error("Wrong Password Entered", 400));
@@ -352,107 +387,102 @@ const userById = async (req, res) => {
     }
 }
 
+
+const getUserDetails = async (req, res) => {
+    try {
+        const { username } = req.params;
+
+        // Perform aggregation based on user's role
+        const userDetails = await newModel.aggregate([
+            { $match: { username } }, // Match the user by username
+            {
+                $project: {
+                    username: 1,
+                    password: 1,
+                    email: 1,
+                    role: 1,
+                    admin: {
+                        $cond: {
+                            if: { $eq: ["$role", "admin"] },
+                            then: {
+                                basic_details: {
+                                    profile: "$admin.basic_details.profile",
+                                    firstName: "$admin.basic_details.firstName",
+                                    lastName: "$admin.basic_details.lastName",
+                                    phone: "$admin.basic_details.phone",
+                                    address: "$admin.basic_details.address",
+                                    location: "$admin.basic_details.location",
+                                    state: "$admin.basic_details.state",
+                                    city: "$admin.basic_details.city",
+                                    pincode: "$admin.basic_details.pincode"
+                                },
+                                associated_sellers: "$admin.associated_sellers",
+                                associated_trustee: "$admin.associated_trustee",
+                                unassigned_buyers: "$admin.unassigned_buyers"
+                            },
+                            else: null
+                        }
+                    }
+                }
+            }
+        ]);
+
+        if (!userDetails || userDetails.length === 0) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        res.status(200).json({ success: true, message: "User details retrieved successfully", userDetails });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+
 const WhoAmI = async (req, res) => {
     console.log("reaching in WHO AM I StartPoint for role==> ", req.user.role)
     console.log("reaching in WHO AM I StartPoint for id==> ", req.user.id)
-
-    // try {
-    //     const [sellerResult, buyerResult] = await Promise.all([
-    //         sellerModel.findById(req.user.id),
-    //         buyerModel.findById(req.user.id)
-    //     ]);
-
-    //     if (!!sellerResult) {
-
-    //         return res.status(200).json(
-    //             success("Seller details fetched successfully", sellerResult, 200)
-    //         )
-    //     }
-    //     else if (!!buyerResult) {
-    //         return res.status(200).json(
-    //             success("Buyer details fetched successfully", buyerResult, 200)
-    //         )
-    //     } else {
-    //         const body = { fullName: "Super-Admin", role: "super-admin" }
-    //         return res.status(200).json(
-    //             success("Super Admin details fetched successfully", body, 200)
-    //         )
-    //     }
     try {
         if (req.user.role === "admin") {
+            console.log("reaching in WHO AM I inside if", req.user.username)
 
-            const sellersData = await adminSellersLinkModel.aggregate([
-                { $match: { adminID: req.user.id } },
+            const { username } = req.user;
+                // Perform aggregation based on user's role
+            console.log("reaching in WHO AM I inside if", req.user.username)
+
+             // Perform aggregation based on user's role
+             const userDetails = await newModel.aggregate([
+                { $match: { username } }, // Match the user by username
+                { $unwind: "$admin.associated_sellers" }, // Deconstruct the associated_sellers array
                 {
                     $lookup: {
-                        from: "newModel",
-                        localField: "sellerID",
+                        from: "newModel", // Assuming the collection name is 'newModel'
+                        localField: "admin.associated_sellers.sellerId",
                         foreignField: "_id",
-                        as: "data"
+                        as: "sellers"
                     }
                 },
                 {
                     $project: {
-                        data: {
+                        username: 1, // Keep the username
+                        email: 1, // Keep the email
+                        sellers: {
                             username: 1,
                             email: 1,
                             _id: 1,
-                            phone: 1,
-                            companyName: 1,
-                            location: 1,
-                            state: 1,
-                            city: 1,
-                            approved: 1,
-                        }
+                           
+                        } // Include the sellers array
                     }
-                },
-            ])
-
-            const transformSeller = sellersData.map((item) => item.data).map(([seller]) => seller)
-
-            const trusteeData = await adminTrusteeLinkModel.aggregate([
-                { $match: { adminID: req.user.id } },
-                {
-                    $lookup: {
-                        from: "newModel",
-                        localField: "trusteeID",
-                        foreignField: "_id",
-                        as: "data"
-                    }
-                },
-                {
-                    $project: {
-                        data: {
-                            username: 1,
-                            email: 1,
-                            _id: 1,
-                            phone: 1,
-                            companyName: 1,
-                            location: 1,
-                            state: 1,
-                            city: 1,
-                            approved: 1,
-                        }
-                    }
-                },
+                }
             ]);
 
-            const transformTrustee = trusteeData.map((item) => item.data).map(([trustee]) => trustee)
 
+                console.log(userDetails, " userDetails");
+                if (!userDetails || userDetails.length === 0) {
+                    return res.status(404).json({ success: false, message: "User not found" });
+                }
 
-            const fetchUserData = await newModel.findOne({ _id: req.user.id })
-
-            let body = {
-                personalInfo: fetchUserData,
-                sellers: transformSeller,
-                buyers: [],
-                trustee: transformTrustee,
-                totalSellerCount: transformSeller.length != 0 ? transformSeller.length : 0,
-                totalTrusteeCount: transformTrustee.length != 0 ? transformTrustee.length : 0,
-                totalBuyersCount: 0
-
-            }
-            return res.status(200).json({ success: true, result: body })
+                return res.status(200).json({ success: true, result: userDetails })
         } else if (req.user.role === "seller") {
             const buyersData = await sellerBuyersLinkModel.aggregate([
                 { $match: { sellerID: req.user.id } },
@@ -560,5 +590,6 @@ module.exports = {
     login,
     generateOtpForPasswordReset,
     resetPassword,
-    getDashbardData
+    getDashbardData,
+    getUserDetails
 };

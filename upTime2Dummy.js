@@ -3,6 +3,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const app = express();
 
+
+
+
+
 // Connect to MongoDB
 mongoose.connect('mongodb://localhost:27017/your_database_name', { useNewUrlParser: true, useUnifiedTopology: true });
 

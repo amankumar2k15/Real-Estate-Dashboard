@@ -7,9 +7,10 @@ const checkSuperAdmin = require('../middleware/superAdmin');
 const authenticate = require('../middleware/userRoleAuth');
 const { validate } = require('../middleware/validate');
 const { resetPasswordUser } = require('../validator/user');
+const { getUserDetails } = require('../controller/user');
 
 
-router.post("/create-user", register)
+router.post("/create-user",  register)
 /*
 Super admin routes ===
 list users 
@@ -25,7 +26,8 @@ router.post("/reset-password" , validate(resetPasswordUser) , resetPassword)
 
 
 router.get("/list-users", authenticate, checkSuperAdmin, listUsers)
-router.get("/", authenticate, checkSuperAdmin, userById)
+router.get("/get-user-detils", authenticate, getUserDetails)
+
 router.get("/who-am-i", authenticate, WhoAmI)
 router.get("/dashboard", authenticate, getDashbardData)
 
