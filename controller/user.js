@@ -51,7 +51,7 @@ const register = async (req, res) => {
             }
             const newSeller = new newModel({
                 username,
-                password,
+                password :  securedPassword,
                 email,
                 role,
                 otp: null,
@@ -136,8 +136,6 @@ const register = async (req, res) => {
 
             const sellerId = req.user.id; // Assuming the admin's _id is stored in req.user._id
             await newModel.findByIdAndUpdate(sellerId, { $push: { 'seller.associated_buyers': { buyerId: newBuyer._id } } });
-            // const adminId = req.user.id; // Assuming the admin's _id is stored in req.user._id
-            // await newModel.findByIdAndUpdate(adminId, { $push: { 'admin.associated_sellers': newSeller._id } });
             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
             await sendMail(email, "Welcome Buyer", message);
             return res.status(201).json({ message: 'buyer created successfully', status: 201, data: newBuyer });
@@ -467,44 +465,63 @@ const WhoAmI = async (req, res) => {
             // Extract only the seller details from the populated associated_sellers array
             // const sellers = adminData.admin.associated_sellers.map(seller => seller.sellerId);
             res.status(200).json({ success: true, result: responseData });
-        } else if (req.user.role === "seller") {
-            const buyersData = await sellerBuyersLinkModel.aggregate([
-                { $match: { sellerID: req.user.id } },
-                {
-                    $lookup: {
-                        from: "newModel",
-                        localField: "buyerID",
-                        foreignField: "_id",
-                        as: "data"
-                    }
-                },
-                {
-                    $project: {
-                        data: {
-                            username: 1,
-                            email: 1,
-                            _id: 1,
-                            phone: 1,
-                            location: 1,
-                            state: 1,
-                            city: 1,
-                            approved: 1,
-                        }
-                    }
-                },
-            ]);
-            const fetchUserData = await newModel.findOne({ _id: req.user.id })
+        }
+        
+        // seller logi starts here ============================================================================----------------------------------------------===>
+        
+        else if (req.user.role === "seller") {
+            const { username } = req.user;
+            // Perform aggregation based on user's role and username
+            console.log("reaching in WHO AM I inside if", req.user.username)
+            const sellerData = await newModel.find({
+                $and: [
+                    { role: 'seller' },
+                    { username: username } // Replace 'username' with the specific username value you're searching for
+                ]
+            }).populate({
+                path: 'seller.associated_buyers',
+                populate: { path: 'buyerId', select: '_id username email buyer' } // Specify the fields you want to retrieve for the buyer
+            }) // Select only the seller field to retrieve
 
-            let body = {
-                personalInfo: fetchUserData,
-                sellers: [],
-                buyers: buyersData,
-                trustee: [],
-                totalSellerCount: 0,
-                totalTrusteeCount: 0,
-                totalBuyersCount: buyersData.length != 0 ? buyersData.length : 0
+            if (!sellerData || sellerData.length === 0) {
+                return res.status(404).json({ success: false, message: 'Seller data not found.' });
             }
-            return res.status(200).json({ success: true, result: body })
+            
+            console.log(sellerData, "sellerData");
+            // Extract only the seller details from the populated associated_sellers array if it exists
+            let buyers = [];
+            if (sellerData[0].seller && sellerData[0].seller.associated_buyers) {
+                buyers = sellerData[0].seller.associated_buyers.map(buyer => {
+                    console.log(buyer, "buyer individual");
+                    return {
+                        username: buyer.buyerId.username,
+                        _id: buyer.buyerId._id,
+                        email: buyer.buyerId.email,
+                        phone: buyer.buyerId.buyer.basic_details.phone ? buyer.buyerId.buyer.basic_details.phone : "N/A",
+                        companyName: buyer.buyerId.buyer.basic_details.companyName ? buyer.buyerId.buyer.basic_details.companyName : "N/A",
+                        profile: buyer.buyerId.buyer.basic_details.profile,
+                        location: buyer.buyerId.buyer.basic_details.location ? buyer.buyerId.buyer.basic_details.location : "N/A",
+                        state: buyer.buyerId.buyer.basic_details.state ? buyer.buyerId.buyer.basic_details.state : "N/A",
+                        city: buyer.buyerId.buyer.basic_details.city ? buyer.buyerId.buyer.basic_details.city : "N/A",
+                        approved: buyer.buyerId.buyer.isApproved,
+                    };
+                });
+            }
+
+
+            // Construct the response with the desired admin fields and the populated sellers
+            const responseData = {
+                username: sellerData[0].username,
+                email: sellerData[0].email,
+                phone: sellerData[0].admin.basic_details.phone ? sellerData[0].admin.basic_details.phone : "N/A",
+                profile: sellerData[0].admin.basic_details.profile ? sellerData[0].admin.basic_details.profile : "N/A",
+                // Add other admin fields as needed
+                associated_buyers: buyers
+            };
+
+            // Extract only the seller details from the populated associated_sellers array
+            // const sellers = adminData.admin.associated_sellers.map(seller => seller.sellerId);
+            res.status(200).json({ success: true, result: responseData });
         }
     } catch (err) {
         return res.status(500).json(error(err.message, 500))

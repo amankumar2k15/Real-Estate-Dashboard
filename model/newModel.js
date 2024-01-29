@@ -70,7 +70,8 @@ const newSchema = mongoose.Schema({
                     siteId: mongoose.Types.ObjectId
                 }
             ]
-        }
+        },
+        assigned :  { type: Boolean },
     },
     trustee: {
         basic_details: {

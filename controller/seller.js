@@ -1,4 +1,5 @@
 const adminSellersLinkModel = require("../model/adminSellersLinkModel");
+const newModel = require("../model/newModel");
 const sellerBuyersLinkModel = require("../model/sellerBuyersLinkModel");
 const userModel = require("../model/userModel");
 
@@ -129,28 +130,32 @@ const sellerById = async (req, res) => {
 
 
 const deleteSeller = async (req, res) => {
-    const sellerID = req.params.id
-    if (!sellerID) return res.status(200).json({ error: true, message: `seller id is missing` })
+    const sellerID = req.params.id;
+    if (!sellerID) return res.status(400).json({ error: true, message: `Seller ID is missing` });
     try {
         // Find buyers associated with the seller
-        const buyerLinks = await sellerBuyersLinkModel.find({ sellerID });
-        // Extract buyer ids
-        const buyerIds = buyerLinks.map((link) => link.buyerID);
+        const sellerData = await newModel.findOne({ _id: sellerID });
+        if (!sellerData) {
+            return res.status(404).json({ error: true, message: `Seller not found with ID ${sellerID}` });
+        }
+        // Extract buyer IDs
+        const buyerIds = sellerData?.seller?.associated_buyers.map((link) => link.buyerId);
 
-        // Delete buyers
-        await userModel.deleteMany({ _id: { $in: buyerIds } });
+        // Update buyers' assigned key to false
+        await userModel.updateMany(
+            { _id: { $in: buyerIds } }, // Filter condition for the buyers
+            { $set: { assigned: false } } // Update operation to set assigned to false
+        );
 
-        // Delete seller links
-        await sellerBuyersLinkModel.deleteMany({ sellerID });
+        // Delete the seller and associated buyers links
+        await newModel.deleteOne({ _id: sellerID });
 
-        // Delete the seller
-        await userModel.deleteOne({ _id: sellerID });
-        return res.status(200).json({ success: true, message: `Seller and associated buyers deleted successfully` })
+        return res.status(200).json({ success: true, message: `Seller and associated buyers deleted successfully` });
     } catch (err) {
-        console.log(err)
-        res.status(500).json({ success: false, message: err.message })
+        console.error(err);
+        return res.status(500).json({ success: false, message: err.message });
     }
-}
+};
 
 
 module.exports = {
