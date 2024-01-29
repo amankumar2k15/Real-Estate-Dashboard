@@ -147,6 +147,12 @@ const deleteSeller = async (req, res) => {
             { $set: { assigned: false } } // Update operation to set assigned to false
         );
 
+        await userModel.updateOne(
+            { username: req.user.username }, // Filter condition for the admin user
+            { $pull: { 'admin.assigned_sellers': sellerID } } // Pull operation to remove the seller ID from the array
+        );
+
+       
         // Delete the seller and associated buyers links
         await newModel.deleteOne({ _id: sellerID });
 
