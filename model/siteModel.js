@@ -1,8 +1,5 @@
 const mongoose = require("mongoose")
 
-
-
-
 const siteSchema = new mongoose.Schema({
     sellerId: { type: String, default: null },
     site_name: { type: String, default: null },

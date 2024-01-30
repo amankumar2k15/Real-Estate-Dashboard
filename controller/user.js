@@ -20,458 +20,223 @@ require('dotenv').config();
 
 
 // useful
-// const register = async (req, res) => {
-//     try {
-//         const { username, role, email } = req.body;
-//         if (!role) return res.status(403).json({ message: 'role is required' });
-//         const salt = await bcrypt.genSalt(10);
-//         let password = generatePassword(req.body.username)
-//         console.log("Generated Password:", password);
-//         const securedPassword = await bcrypt.hash(password, salt);
-
-//         // conditions checking which role is being created 
-//         if (role === "seller") {
-//             if (req.user.role !== "admin") return res.status(403).json({ message: 'Only admins can create sellers.' });
-//             // seller regster 
-//             // Validate file arrays for seller documents 
-//             const requiredFiles = ["adhaar", "companyPan", "blankCheque", "certificate_of_incorporate", "profile"];
-//             for (const file of requiredFiles) {
-//                 if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
-//                     return res.status(400).json({ success: false, message: `Please upload ${file} file` });
-//                 }
-//             }
-//             // Upload files
-//             const uploadResults = {};
-//             for (const file of requiredFiles) {
-//                 const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
-//                 if (!uploadResult.success) {
-//                     return res.status(500).json({ success: false, message: "Error uploading image" });
-//                 }
-//                 uploadResults[file] = uploadResult.url;
-//             }
-//             const newSeller = new newModel({
-//                 username,
-//                 password :  securedPassword,
-//                 email,
-//                 role,
-//                 otp: null,
-//                 seller: role === 'seller' ? {
-//                     basic_details: {
-//                         profile: uploadResults?.profile,
-//                         firstName: req.body.firstName,
-//                         lastName: req.body.lastName,
-//                         phone: req.body.phone,
-//                         address: req.body.address,
-//                         location: req.body.location,
-//                         state: req.body.state,
-//                         city: req.body.city,
-//                         pincode: req.body.pincode,
-//                     },
-//                     kyc_details: {
-//                         companyName: req.body.companyName,
-//                         certificate_of_incorporate: uploadResults?.certificate_of_incorporate,
-//                         blankCheque: uploadResults?.blankCheque,
-//                         adhaar: uploadResults?.adhaar,
-//                         companyPan: uploadResults?.companyPan,
-//                     },
-
-//                     isApproved: true, // Set isApproved to false by default for seller
-//                     associated_buyers: [],
-//                     associated_sites: []
-//                 } : undefined,
-//             });
-//             await newSeller.save();
-//             const adminId = req.user.id; // Assuming the admin's _id is stored in req.user._id
-//             await newModel.findByIdAndUpdate(adminId, { $push: { 'admin.associated_sellers': { sellerId: newSeller._id } } });
-//             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
-//             await sendMail(email, "Welcome Seller", message);
-//             return res.status(201).json({ message: 'seller created successfully', status: 201, data: newSeller });
-//         } else if (role === "buyer") {
-//             //  register buyer
-//             if (req.user.role !== "seller") return res.status(403).json({ message: 'Only seller can create buyers.' });
-//             // Validate file arrays
-//             const requiredFiles = ["adhaar", "individualPan", "blankCheque", "source_of_fund", "profile"];
-//             for (const file of requiredFiles) {
-//                 if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
-//                     return res.status(400).json({ success: false, message: `Please upload ${file} file` });
-//                 }
-//             }
-
-//             // Upload files
-//             const uploadResults = {};
-//             for (const file of requiredFiles) {
-//                 const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
-//                 if (!uploadResult.success) {
-//                     return res.status(500).json({ success: false, message: "Error uploading image" });
-//                 }
-//                 uploadResults[file] = uploadResult.url;
-//             }
-//             const newBuyer = new newModel({
-//                 username, password: securedPassword, role,
-//                 buyer: {
-//                     basic_details: {
-//                         profile: uploadResults?.profile,
-//                         firstName: req.body.firstName,
-//                         lastName: req.body.lastName,
-//                         phone: req.body.phone,
-//                         address: req.body.address,
-//                         location: req.body.location,
-//                         state: req.body.state,
-//                         city: req.body.city,
-//                         pincode: req.body.pincode,
-//                     },
-//                     kyc_details: {
-//                         source_of_fund: uploadResults.source_of_fund,
-//                         blankCheque: uploadResults?.blankCheque,
-//                         adhaar: uploadResults?.adhaar,
-//                         individualPan: uploadResults?.individualPan,
-//                     },
-//                     isApproved: true,
-//                     purchased_site: [],
-//                 },
-//             });
-
-
-//             await newBuyer.save()
-
-//             const sellerId = req.user.id; // Assuming the admin's _id is stored in req.user._id
-//             await newModel.findByIdAndUpdate(sellerId, { $push: { 'seller.associated_buyers': { buyerId: newBuyer._id } } });
-//             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
-//             await sendMail(email, "Welcome Buyer", message);
-//             return res.status(201).json({ message: 'buyer created successfully', status: 201, data: newBuyer });
-
-//         } else if (role === "trustee") {
-//             if (req.user.role !== "admin") return res.status(403).json({ message: 'Only admins can create trustee.' });
-
-//             const requiredFiles = ["individualPan", "profile"];
-//             for (const file of requiredFiles) {
-//                 if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
-//                     return res.status(400).json({ success: false, message: `Please upload ${file} file` });
-//                 }
-//             }
-
-//             // Upload files
-//             const uploadResults = {};
-//             for (const file of requiredFiles) {
-//                 const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
-//                 if (!uploadResult.success) {
-//                     return res.status(500).json({ success: false, message: "Error uploading image" });
-//                 }
-//                 uploadResults[file] = uploadResult.url;
-//             }
-//             const newTrustee = new newModel({
-//                 username, password: securedPassword, role, email,
-//                 trustee: {
-//                     basic_details: {
-//                         profile: uploadResults.profile,
-//                         firstName: req.body.firstName,
-//                         lastName: req.body.lastName,
-//                         phone: req.body.phone,
-//                         address: req.body.address,
-//                         location: req.body.location,
-//                         state: req.body.state,
-//                         city: req.body.city,
-//                         pincode: req.body.pincode,
-//                     },
-//                     kyc_details: {
-//                         bankName: req.body.bankName,
-//                         individualPan: uploadResults?.individualPan,
-//                     },
-//                     isApproved: true,
-//                 },
-//                 seller: undefined, admin: undefined, buyer: undefined
-//             });
-//             await newTrustee.save();
-//             const adminId = req.user.id; // Assuming the admin's _id is stored in req.user._id
-//             await newModel.findByIdAndUpdate(adminId, { $push: { 'admin.associated_trustee': { trusteeId: newTrustee._id } } });
-//             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
-//             await sendMail(email, "Welcome Trustee", message);
-//             return res.status(201).json({ message: 'trustee created successfully', data: newTrustee });
-
-//         } else if (role === "admin") {
-//             //  register admin
-//             const requiredFiles = ["profile"];
-//             for (const file of requiredFiles) {
-//                 if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
-//                     return res.status(400).json({ success: false, message: `Please upload ${file} file` });
-//                 }
-//             }
-
-//             // Upload files
-//             const uploadResults = {};
-//             for (const file of requiredFiles) {
-//                 const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
-//                 if (!uploadResult.success) {
-//                     return res.status(500).json({ success: false, message: "Error uploading image" });
-//                 }
-//                 uploadResults[file] = uploadResult.url;
-//             }
-//             const newAdmin = new newModel({
-//                 username, password: securedPassword, role, email,
-//                 trustee: undefined, seller: undefined, buyer: undefined,
-//                 admin: {
-//                     basic_details: {
-//                         profile: uploadResults?.profile,
-//                         firstName: req.body.firstName,
-//                         lastName: req.body.lastName,
-//                         phone: req.body.phone,
-//                         address: req.body.address,
-//                         location: req.body.location,
-//                         state: req.body.state,
-//                         city: req.body.city,
-//                         pincode: req.body.pincode,
-//                     },
-//                 },
-//                 associated_sellers: [],
-//                 associated_trustee: [],
-//                 unassigned_buyers: [],
-//             });
-//             await newAdmin.save();
-//             const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
-//             await sendMail(email, "Welcome Admin", message);
-//             return res.status(201).json({ message: 'admin created successfully', status: 201, data: newAdmin });
-//         } else {
-//             return res.status(422).json(error(`ROLE: ${role} is invalid either it will be admin seller or buyer`, 422))
-//         }
-//     } catch (err) {
-//         return res.status(500).json(error(err.message, 500))
-//     }
-// }
 const register = async (req, res) => {
     try {
         const { username, role, email } = req.body;
-
-        // Validate role
-        if (!role || !['admin', 'seller', 'buyer', 'trustee'].includes(role)) {
-            return res.status(403).json({ message: 'Role is required and must be one of: admin, seller, buyer, trustee' });
-        }
-
-        // Generate secure password
+        if (!role) return res.status(403).json({ message: 'role is required' });
         const salt = await bcrypt.genSalt(10);
-        const password = generatePassword(username);
+        let password = generatePassword(req.body.username)
         console.log("Generated Password:", password);
         const securedPassword = await bcrypt.hash(password, salt);
 
-        let newRecord;
-
-        switch (role) {
-            case "seller":
-                // Seller registration logic
-                if (req.user.role !== "admin") return res.status(403).json({ message: 'Only admins can create sellers.' });
-                newRecord = await registerSeller(req, securedPassword);
-                break;
-
-            case "buyer":
-                // Buyer registration logic
-                if (req.user.role !== "seller") return res.status(403).json({ message: 'Only sellers can create buyers.' });
-                newRecord = await registerBuyer(req, securedPassword);
-                break;
-
-            case "trustee":
-                // Trustee registration logic
-                if (req.user.role !== "admin") return res.status(403).json({ message: 'Only admins can create trustees.' });
-                newRecord = await registerTrustee(req, securedPassword);
-                break;
-
-            case "admin":
-                // Admin registration logic
-                newRecord = await registerAdmin(req, securedPassword);
-                break;
-
-            default:
-                return res.status(422).json({ message: `Invalid role: ${role}. Role must be one of: admin, seller, buyer, trustee` });
-        }
-
-        // Send email with credentials
-        await sendMail(email, `Welcome ${role.charAt(0).toUpperCase() + role.slice(1)}`, `Here are your credentials:\nEmail: ${email}\nPassword: ${password}`);
-
-        return res.status(201).json({ message: `${role} created successfully`, data: newRecord });
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ message: 'Internal Server Error' });
-    }
-};
-
-// Seller registration function
-const registerSeller = async (req, securedPassword) => {
-    const { username, email } = req.body;
-    // Validate required files for seller registration
-    const requiredFiles = ["adhaar", "companyPan", "blankCheque", "certificate_of_incorporate", "profile"];
-    for (const file of requiredFiles) {
-        if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
-            throw new Error(`Please upload ${file} file`);
-        }
-    }
-    // Upload files
-    const uploadResults = await uploadFiles(req.files);
-    // Create new seller record
-    const newSeller = await createNewModelRecord(username, securedPassword, email, 'seller', uploadResults);
-    // Update admin's associated_sellers
-    await updateAdminAssociatedSellers(req.user.id, newSeller._id);
-    return newSeller;
-};
-
-// Buyer registration function
-const registerBuyer = async (req, securedPassword) => {
-    const { username, email } = req.body;
-    // Validate required files for buyer registration
-    const requiredFiles = ["adhaar", "individualPan", "blankCheque", "source_of_fund", "profile"];
-    for (const file of requiredFiles) {
-        if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
-            throw new Error(`Please upload ${file} file`);
-        }
-    }
-    // Upload files
-    const uploadResults = await uploadFiles(req.files);
-    // Create new buyer record
-    const newBuyer = await createNewModelRecord(username, securedPassword, email, 'buyer', uploadResults);
-    // Update seller's associated_buyers
-    await updateSellerAssociatedBuyers(req.user.id, newBuyer._id);
-    return newBuyer;
-};
-
-// Trustee registration function
-const registerTrustee = async (req, securedPassword) => {
-    const { username, email } = req.body;
-    // Validate required files for trustee registration
-    const requiredFiles = ["individualPan", "profile"];
-    for (const file of requiredFiles) {
-        if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
-            throw new Error(`Please upload ${file} file`);
-        }
-    }
-    // Upload files
-    const uploadResults = await uploadFiles(req.files);
-    // Create new trustee record
-    const newTrustee = await createNewModelRecord(username, securedPassword, email, 'trustee', uploadResults);
-    // Update admin's associated_trustees
-    await updateAdminAssociatedTrustees(req.user.id, newTrustee._id);
-    return newTrustee;
-};
-
-// Admin registration function
-const registerAdmin = async (req, securedPassword) => {
-    const { username, email } = req.body;
-    // Validate required files for admin registration
-    const requiredFiles = ["profile"];
-    for (const file of requiredFiles) {
-        if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
-            throw new Error(`Please upload ${file} file`);
-        }
-    }
-    // Upload files
-    const uploadResults = await uploadFiles(req.files);
-    // Create new admin record
-    const newAdmin = await createNewModelRecord(username, securedPassword, email, 'admin', uploadResults);
-    return newAdmin;
-};
-
-// Helper function to upload files
-const uploadFiles = async (files) => {
-    const uploadResults = {};
-    for (const file in files) {
-        const uploadResult = await uploadImg(files[file][0].path, files[file][0].originalname);
-        if (!uploadResult.success) {
-            throw new Error("Error uploading image");
-        }
-        uploadResults[file] = uploadResult.url;
-    }
-    return uploadResults;
-};
-
-// Helper function to create new record in newModel
-const createNewModelRecord = async (username, securedPassword, email, role, uploadResults) => {
-    const newRecord = new newModel({
-        username,
-        password: securedPassword,
-        email,
-        role,
-        otp: null,
-        ...getRoleSpecificFields(role, uploadResults)
-    });
-    await newRecord.save();
-    return newRecord;
-};
-
-// Helper function to get role-specific fields
-const getRoleSpecificFields = (role, uploadResults) => {
-    switch (role) {
-        case 'seller':
-            return {
-                seller: {
+        // conditions checking which role is being created 
+        if (role === "seller") {
+            if (req.user.role !== "admin") return res.status(403).json({ message: 'Only admins can create sellers.' });
+            // seller regster 
+            // Validate file arrays for seller documents 
+            const requiredFiles = ["adhaar", "companyPan", "blankCheque", "certificate_of_incorporate", "profile"];
+            for (const file of requiredFiles) {
+                if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
+                    return res.status(400).json({ success: false, message: `Please upload ${file} file` });
+                }
+            }
+            // Upload files
+            const uploadResults = {};
+            for (const file of requiredFiles) {
+                const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
+                if (!uploadResult.success) {
+                    return res.status(500).json({ success: false, message: "Error uploading image" });
+                }
+                uploadResults[file] = uploadResult.url;
+            }
+            const newSeller = new newModel({
+                username,
+                password: securedPassword,
+                email,
+                role,
+                otp: null,
+                seller: role === 'seller' ? {
                     basic_details: {
-                        profile: uploadResults.profile,
-                        // Add other fields here
+                        profile: uploadResults?.profile,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        phone: req.body.phone,
+                        address: req.body.address,
+                        location: req.body.location,
+                        state: req.body.state,
+                        city: req.body.city,
+                        pincode: req.body.pincode,
                     },
                     kyc_details: {
-                        // Add KYC details here
+                        companyName: req.body.companyName,
+                        certificate_of_incorporate: uploadResults?.certificate_of_incorporate,
+                        blankCheque: uploadResults?.blankCheque,
+                        adhaar: uploadResults?.adhaar,
+                        companyPan: uploadResults?.companyPan,
                     },
-                    isApproved: true,
+
+                    isApproved: true, // Set isApproved to false by default for seller
                     associated_buyers: [],
                     associated_sites: []
+                } : undefined,
+            });
+            await newSeller.save();
+            const adminId = req.user.id; // Assuming the admin's _id is stored in req.user._id
+            await newModel.findByIdAndUpdate(adminId, { $push: { 'admin.associated_sellers': { sellerId: newSeller._id } } });
+            const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
+            await sendMail(email, "Welcome Seller", message);
+            return res.status(201).json({ message: 'seller created successfully', status: 201, data: newSeller });
+        } else if (role === "buyer") {
+            //  register buyer
+            if (req.user.role !== "seller") return res.status(403).json({ message: 'Only seller can create buyers.' });
+            // Validate file arrays
+            const requiredFiles = ["adhaar", "individualPan", "blankCheque", "source_of_fund", "profile"];
+            for (const file of requiredFiles) {
+                if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
+                    return res.status(400).json({ success: false, message: `Please upload ${file} file` });
                 }
-            };
-        case 'buyer':
-            return {
+            }
+
+            // Upload files
+            const uploadResults = {};
+            for (const file of requiredFiles) {
+                const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
+                if (!uploadResult.success) {
+                    return res.status(500).json({ success: false, message: "Error uploading image" });
+                }
+                uploadResults[file] = uploadResult.url;
+            }
+            const newBuyer = new newModel({
+                username, password: securedPassword, role,
                 buyer: {
                     basic_details: {
-                        profile: uploadResults.profile,
-                        // Add other fields here
+                        profile: uploadResults?.profile,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        phone: req.body.phone,
+                        address: req.body.address,
+                        location: req.body.location,
+                        state: req.body.state,
+                        city: req.body.city,
+                        pincode: req.body.pincode,
                     },
                     kyc_details: {
-                        // Add KYC details here
+                        source_of_fund: uploadResults.source_of_fund,
+                        blankCheque: uploadResults?.blankCheque,
+                        adhaar: uploadResults?.adhaar,
+                        individualPan: uploadResults?.individualPan,
                     },
                     isApproved: true,
                     purchased_site: [],
-                    assigned: true
+                },
+            });
+
+
+            await newBuyer.save()
+
+            const sellerId = req.user.id; // Assuming the admin's _id is stored in req.user._id
+            await newModel.findByIdAndUpdate(sellerId, { $push: { 'seller.associated_buyers': { buyerId: newBuyer._id } } });
+            const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
+            await sendMail(email, "Welcome Buyer", message);
+            return res.status(201).json({ message: 'buyer created successfully', status: 201, data: newBuyer });
+
+        } else if (role === "trustee") {
+            if (req.user.role !== "admin") return res.status(403).json({ message: 'Only admins can create trustee.' });
+
+            const requiredFiles = ["individualPan", "profile"];
+            for (const file of requiredFiles) {
+                if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
+                    return res.status(400).json({ success: false, message: `Please upload ${file} file` });
                 }
-            };
-        case 'trustee':
-            return {
+            }
+
+            // Upload files
+            const uploadResults = {};
+            for (const file of requiredFiles) {
+                const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
+                if (!uploadResult.success) {
+                    return res.status(500).json({ success: false, message: "Error uploading image" });
+                }
+                uploadResults[file] = uploadResult.url;
+            }
+            const newTrustee = new newModel({
+                username, password: securedPassword, role, email,
                 trustee: {
                     basic_details: {
                         profile: uploadResults.profile,
-                        // Add other fields here
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        phone: req.body.phone,
+                        address: req.body.address,
+                        location: req.body.location,
+                        state: req.body.state,
+                        city: req.body.city,
+                        pincode: req.body.pincode,
                     },
                     kyc_details: {
-                        // Add KYC details here
+                        bankName: req.body.bankName,
+                        individualPan: uploadResults?.individualPan,
                     },
-                    isApproved: true
+                    isApproved: true,
+                },
+                seller: undefined, admin: undefined, buyer: undefined
+            });
+            await newTrustee.save();
+            const adminId = req.user.id; // Assuming the admin's _id is stored in req.user._id
+            await newModel.findByIdAndUpdate(adminId, { $push: { 'admin.associated_trustee': { trusteeId: newTrustee._id } } });
+            const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
+            await sendMail(email, "Welcome Trustee", message);
+            return res.status(201).json({ message: 'trustee created successfully', data: newTrustee });
+
+        } else if (role === "admin") {
+            //  register admin
+            const requiredFiles = ["profile"];
+            for (const file of requiredFiles) {
+                if (!req.files[file] || !Array.isArray(req.files[file]) || req.files[file].length === 0) {
+                    return res.status(400).json({ success: false, message: `Please upload ${file} file` });
                 }
-            };
-        case 'admin':
-            return {
+            }
+
+            // Upload files
+            const uploadResults = {};
+            for (const file of requiredFiles) {
+                const uploadResult = await uploadImg(req.files[file][0].path, req.files[file][0].originalname);
+                if (!uploadResult.success) {
+                    return res.status(500).json({ success: false, message: "Error uploading image" });
+                }
+                uploadResults[file] = uploadResult.url;
+            }
+            const newAdmin = new newModel({
+                username, password: securedPassword, role, email,
+                trustee: undefined, seller: undefined, buyer: undefined,
                 admin: {
                     basic_details: {
-                        profile: uploadResults.profile,
-                        // Add other fields here
+                        profile: uploadResults?.profile,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        phone: req.body.phone,
+                        address: req.body.address,
+                        location: req.body.location,
+                        state: req.body.state,
+                        city: req.body.city,
+                        pincode: req.body.pincode,
                     },
-                    associated_sellers: [],
-                    associated_trustees: [],
-                    unassigned_buyers: []
-                }
-            };
-        default:
-            return {};
+                },
+                associated_sellers: [],
+                associated_trustee: [],
+                unassigned_buyers: [],
+            });
+            await newAdmin.save();
+            const message = `Here are your credentials Email: ${req.body.email} and Password: ${password}`;
+            await sendMail(email, "Welcome Admin", message);
+            return res.status(201).json({ message: 'admin created successfully', status: 201, data: newAdmin });
+        } else {
+            return res.status(422).json(error(`ROLE: ${role} is invalid either it will be admin seller or buyer`, 422))
+        }
+    } catch (err) {
+        return res.status(500).json(error(err.message, 500))
     }
-};
-
-// Helper function to update admin's associated_sellers
-const updateAdminAssociatedSellers = async (adminId, sellerId) => {
-    await newModel.findByIdAndUpdate(adminId, { $push: { 'admin.associated_sellers': { sellerId } } });
-};
-
-// Helper function to update seller's associated_buyers
-const updateSellerAssociatedBuyers = async (sellerId, buyerId) => {
-    await newModel.findByIdAndUpdate(sellerId, { $push: { 'seller.associated_buyers': { buyerId } } });
-};
-
-// Helper function to update admin's associated_trustees
-const updateAdminAssociatedTrustees = async (adminId, trusteeId) => {
-    await newModel.findByIdAndUpdate(adminId, { $push: { 'admin.associated_trustees': { trusteeId } } });
-};
-
-
+}
 
 
 
@@ -531,7 +296,6 @@ const login = async (req, res) => {
         try {
             const { username, password } = req.body;
             const user = await newModel.findOne({ username })
-            console.log(user, "user -==============> ");
             const isPasswordCorrect = await bcrypt.compare(password, user.password);
             if (!isPasswordCorrect)
                 return res.status(400).json(error("Wrong Password Entered", 400));
@@ -722,7 +486,7 @@ const WhoAmI = async (req, res) => {
             if (adminData[0].admin && adminData[0].admin.associated_sellers) {
                 sellers = adminData[0].admin.associated_sellers.map(seller => {
                     const numBuyers = seller?.sellerId?.seller?.associated_buyers?.length ? seller?.sellerId?.seller?.associated_buyers?.length : 0;
-                    console.log(seller, "seller individual" , numBuyers);
+                    console.log(seller, "seller individual", numBuyers);
                     return {
                         username: seller?.sellerId?.username,
                         _id: seller?.sellerId?._id,
@@ -734,7 +498,7 @@ const WhoAmI = async (req, res) => {
                         state: seller?.sellerId?.seller?.basic_details?.state ? seller?.sellerId?.seller?.basic_details?.state : "N/A",
                         city: seller?.sellerId?.seller?.basic_details?.city ? seller?.sellerId?.seller?.basic_details?.city : "N/A",
                         approved: seller?.sellerId?.seller?.isApproved,
-                        numBuyers :numBuyers
+                        numBuyers: numBuyers
                     };
                 });
             }
@@ -754,9 +518,9 @@ const WhoAmI = async (req, res) => {
             // const sellers = adminData.admin.associated_sellers.map(seller => seller.sellerId);
             res.status(200).json({ success: true, result: responseData });
         }
-        
+
         // seller logi starts here ============================================================================----------------------------------------------===>
-        
+
         else if (req.user.role === "seller") {
             const { username } = req.user;
             // Perform aggregation based on user's role and username
