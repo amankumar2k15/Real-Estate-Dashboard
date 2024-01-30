@@ -107,7 +107,7 @@ const register = async (req, res) => {
                 uploadResults[file] = uploadResult.url;
             }
             const newBuyer = new newModel({
-                username, password: securedPassword, role,
+                username, password: securedPassword, role, email,
                 buyer: {
                     basic_details: {
                         profile: uploadResults?.profile,
