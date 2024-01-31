@@ -548,7 +548,7 @@ const WhoAmI = async (req, res) => {
                     return {
                         username: buyer.buyerId.username,
                         _id: buyer.buyerId._id,
-                        email: buyer.buyerId.email,
+                        email: buyer.buyerId.email ? buyer.buyerId.email : "N/A",
                         phone: buyer.buyerId.buyer.basic_details.phone ? buyer.buyerId.buyer.basic_details.phone : "N/A",
                         companyName: buyer.buyerId.buyer.basic_details.companyName ? buyer.buyerId.buyer.basic_details.companyName : "N/A",
                         profile: buyer.buyerId.buyer.basic_details.profile,
