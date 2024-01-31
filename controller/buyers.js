@@ -1,4 +1,5 @@
 const adminSellersLinkModel = require("../model/adminSellersLinkModel");
+const newModel = require("../model/newModel");
 const sellerBuyersLinkModel = require("../model/sellerBuyersLinkModel");
 const userModel = require("../model/userModel");
 
@@ -131,29 +132,29 @@ const buyerById = async (req, res) => {
 
 
 const deleteBuyer = async (req, res) => {
-    const sellerID = req.params.id
-    if (!sellerID) return res.status(200).json({ error: true, message: `seller id is missing` })
+    const buyerId = req.params.id;
+    if (!buyerId) return res.status(400).json({ error: true, message: `Buyer ID is missing` });
     try {
         // Find buyers associated with the seller
-        const buyerLinks = await sellerBuyersLinkModel.find({ sellerID });
+        const buyerData = await newModel.findOne({ _id: buyerId });
+        if (!buyerData) {
+            return res.status(404).json({ error: true, message: `Buyer not found with ID ${buyerId}` });
+        }
+   
+        await newModel.updateOne(
+            { _id: req.user.id },
+            { $pull: { 'seller.associated_buyers': { buyerId: buyerId } } }
+        );
 
-        // Extract buyer ids
-        const buyerIds = buyerLinks.map((link) => link.buyerID);
+        // Delete the seller and associated buyers links
+        await newModel.deleteOne({ _id: buyerId });
 
-        // Delete buyers
-        await userModel.deleteMany({ _id: { $in: buyerIds } });
-
-        // Delete seller links
-        await sellerBuyersLinkModel.deleteMany({ sellerID });
-
-        // Delete the seller
-        await userModel.deleteOne({ _id: sellerID });
-        return res.status(200).json({ success: true, message: `Seller and associated buyers deleted successfully` })
+        return res.status(204).json({ success: true, message: `Buyer deleted successfully` });
     } catch (err) {
-        console.log(err)
-        res.status(500).json({ success: false, message: err.message })
+        console.error(err);
+        return res.status(500).json({ success: false, message: err.message });
     }
-}
+};
 
 
 module.exports = {
