@@ -565,8 +565,8 @@ const WhoAmI = async (req, res) => {
             const responseData = {
                 username: sellerData[0].username,
                 email: sellerData[0].email,
-                phone: sellerData[0].admin.basic_details.phone ? sellerData[0].admin.basic_details.phone : "N/A",
-                profile: sellerData[0].admin.basic_details.profile ? sellerData[0].admin.basic_details.profile : "N/A",
+                phone: sellerData[0].seller.basic_details.phone ? sellerData[0].seller.basic_details.phone : "N/A",
+                profile: sellerData[0].seller.basic_details.profile ? sellerData[0].seller.basic_details.profile : "N/A",
                 // Add other admin fields as needed
                 associated_buyers: buyers
             };
