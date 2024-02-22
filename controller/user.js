@@ -242,55 +242,6 @@ const register = async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const login = async (req, res) => {
     try {
         try {
@@ -325,14 +276,13 @@ const login = async (req, res) => {
 
 
 
-// un used 
-
 const generateOtpForPasswordReset = async (req, res) => {
     try {
         const { email } = req.body;
         console.log("generateOtpForPasswordReset Email", req.body)
         if (!email) return res.status(422).json(error("Email is missing", 422));
         const otp = generateOtp(6);
+        console.log(otp)
 
         const findUser = await newModel.findOne({ email })
         if (!findUser) {
@@ -404,7 +354,6 @@ const userById = async (req, res) => {
         return res.status(500).json(error(err.message, 500))
     }
 }
-
 
 const getUserDetails = async (req, res) => {
     try {

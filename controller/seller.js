@@ -82,6 +82,7 @@ const sellerById = async (req, res) => {
     const sellerId = req.params.id
     if (!sellerId) return res.status(200).json({ error: true, message: `seller id is missing` })
     try {
+        console.log("inside seller by id", sellerId)
 
         const buyersData = await sellerBuyersLinkModel.aggregate([
             { $match: { sellerID: sellerId } },

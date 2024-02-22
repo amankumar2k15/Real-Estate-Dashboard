@@ -10,7 +10,7 @@ const { resetPasswordUser } = require('../validator/user');
 const { getUserDetails } = require('../controller/user');
 
 
-router.post("/create-user",  register)
+router.post("/create-user", register)
 /*
 Super admin routes ===
 list users 
@@ -20,10 +20,9 @@ reject users
 pagination 
 filter 
 */
-router.post("/login" , login);
-router.post("/generate-otp" , generateOtpForPasswordReset)
-router.post("/reset-password" , validate(resetPasswordUser) , resetPassword)
-
+router.post("/login", login);
+router.post("/generate-otp", generateOtpForPasswordReset)
+router.post("/reset-password", validate(resetPasswordUser), resetPassword)
 
 router.get("/list-users", authenticate, checkSuperAdmin, listUsers)
 router.get("/get-user-detils", authenticate, getUserDetails)
