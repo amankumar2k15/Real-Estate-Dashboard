@@ -307,8 +307,7 @@ const resetPassword = async (req, res) => {
 
         const findUser = await newModel.findOne({ email })
         if (!findUser) return res.status(422).json(error("Email does not exist", 422))
-        else if (findUser.otp != otp) return res.status(400).json(error("Invalid OTP entered", 400));
-
+        else if (findUser.otp != otp) return res.status(422).json(error("Invalid OTP entered", 422));
         const salt = await bcrypt.genSalt(10);
         const securedPassword = await bcrypt.hash(newPassword, salt);
         await newModel.findOneAndUpdate({ email }, { password: securedPassword }, { new: true });
